@@ -1,0 +1,116 @@
+[
+    {
+        "label": "3-key",
+        "name": "3-key",
+        "visible": true,
+        "description": "Each team can use a max of 3 keys at a time"
+    },
+    {
+        "label": "5-key",
+        "name": "5-key",
+        "visible": true,
+        "description": "Each team can use a max of 5 keys at a time"
+    },
+    {
+        "label": "10-key",
+        "name": "10-key",
+        "visible": true,
+        "description": "Each team can use a max of 10 keys at a time"
+    },
+    {
+        "label": "natural layout",
+        "name": "natural_layout",
+        "visible": true,
+        "description": "reshapes the board like a real keyboard"
+    },
+    {
+        "label": "symmetry",
+        "name": "symmetry",
+        "visible": true,
+        "description": "symmetrical keys are triggered"
+    },
+    {
+        "label": "closed board",
+        "name": "closed_board",
+        "visible": true,
+        "description": "no gaps between keys"
+    },
+    {
+        "label": "board is alive",
+        "name": "board_is_alive",
+        "visible": true,
+        "description": "the board jiggles and shifts around"
+    },
+    {
+        "label": "freeplay",
+        "name": "freeplay",
+        "visible": false,
+        "description": "No falling off, scores or timer"
+    },
+    {
+        "label": "endless",
+        "name": "endless",
+        "visible": false,
+        "description": "this game never ends"
+    },
+    {
+        "label": "inverted controls",
+        "name": "inverted_controls",
+        "visible": true,
+        "description": "keys go down-up by default"
+    },
+    {
+        "label": "mbp2017",
+        "name": "mbp2017",
+        "visible": true,
+        "description": "keys have a 3 second cooldown"
+    },
+    {
+        "label": "loop goal",
+        "name": "loop_goal",
+        "visible": true,
+        "description": "the ball just loops endlessly instead of resetting in the middle"
+    },
+    {
+        "label": "random",
+        "name": "random",
+        "visible": false,
+        "description": "randomly switches all Mods during the game"
+    },
+    {
+        "label": "slo-mo",
+        "name": "slo-mo",
+        "visible": false,
+        "description": "get double the time to think"
+    },
+    {
+        "label": "lo-gravity",
+        "name": "lo-gravity",
+        "visible": false,
+        "description": "gravity is 1/2 usual"
+    },
+    {
+        "label": "denial",
+        "name": "denial",
+        "visible": false,
+        "description": "symmetrical keys are disabled"
+    },
+    {
+        "label": "collapse",
+        "name": "collapse",
+        "visible": false,
+        "description": "keys disappear after being hit 2 times"
+    },
+    {
+        "label": "double dingus",
+        "name": "double dingus",
+        "visible": true,
+        "description": "2 levels of keys"
+    },
+    {
+        "label": "triple tringus",
+        "name": "triple tringus",
+        "visible": true,
+        "description": "3 levels of keys"
+    }
+]

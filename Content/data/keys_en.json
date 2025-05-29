@@ -1,0 +1,65 @@
+[
+    {
+        "name": "tabula",
+        "description": "the original keyball board. Flat",
+        "color1": "(R=255,G=255,B=255,A=1)",
+        "emitter1": "(R=255,G=255,B=255,A=1)",
+        "color2": "(R=255,G=255,B=255,A=1)",
+        "emitter2": "(R=255,G=255,B=255,A=1)",
+        "labelOrientation": "vertical"
+    },
+    {
+        "name": "velum v1",
+        "description": "bulging keys",
+        "color1": "(R=29,G=11,B=61,A=255)",
+        "emitter1": "(R=8,G=0,B=16,A=0)",
+        "color2": "(R=29,G=11,B=61,A=255)",
+        "emitter2": "(R=8,G=0,B=16,A=0)",
+        "labelOrientation": "vertical"
+    },
+    {
+        "name": "sine",
+        "description": "sine wave, comes in twos",
+        "color1": "(R=200,G=200,B=255,A=0)",
+        "emitter1": "(R=255,G=255,B=255,A=0)",
+        "color2": "(R=220,G=255,B=220,A=212)",
+        "emitter2": "(R=125,G=200,B=200,A=212)",
+        "labelOrientation": "vertical"
+    },
+    {
+        "name": "saw",
+        "description": "jagged keys angled at the left or right",
+        "color1": "(R=21,G=235,B=87,A=0)",
+        "emitter1": "(R=1,G=8,B=31,A=255)",
+        "color2": "(R=255,G=255,B=255,A=0)",
+        "emitter2": "(R=11,G=8,B=16,A=0)",
+        "labelOrientation": "vertical"
+    },
+    {
+        "name": "realboy v1",
+        "description": "a small real-ish keyboard",
+        "color1": "(R=216,G=216,B=216,A=255)",
+        "emitter1": "(R=216,G=216,B=216,A=255)",
+        "color2": "(R=216,G=216,B=216,A=255)",
+        "emitter2": "(R=216,G=216,B=216,A=255)",
+        "labelOrientation": "horizontal"
+    },
+    {
+        "name": "tricky v1",
+        "description": "spinning keyboard something something profit",
+        "color1": "(R=216,G=216,B=216,A=255)",
+        "emitter1": "(R=216,G=216,B=216,A=255)",
+        "color2": "(R=243,G=243,B=243,A=255)",
+        "emitter2": "(R=243,G=243,B=243,A=255)",
+        "labelOrientation": "vertical"
+    },
+    {
+        "name": "diamond",
+        "description": "ehhhhhhhh",
+        "color1": "(R=0,G=231,B=231,A=255)",
+        "emitter1": "(R=0,G=135,B=231,A=255)",
+        "color2": "(R=0,G=231,B=231,A=255)",
+        "emitter2": "(R=0,G=135,B=231,A=255)",
+        "labelOrientation": "vertical"
+    }
+]

@@ -1,0 +1,50 @@
+cat_index,id,category,name,type,default,info,update when,visible,should list in lobby
+0,0,meta,name,STRING,my custom keyball mode,,always,FALSE,TRUE
+0,1,board mod,symmetry,BOOL,FALSE,,always,TRUE,TRUE
+1,2,board mod,max keys,INT,4,"(if 0, doesnt exist, if more, thats the max ) ",always,TRUE,TRUE
+2,3,board mod,inverted controls,BOOL,FALSE,,always,TRUE,TRUE
+3,4,board mod,cooldown,INT,0,,always,TRUE,TRUE
+4,5,board mod,layers,INT,1,,always,TRUE,TRUE
+5,6,board mod,crumbling layers,BOOL,FALSE,,always,TRUE,TRUE
+0,7,rule,max duration,INT,120,,always,TRUE,TRUE
+1,8,rule,side penalty,INT,10,,always,TRUE,TRUE
+2,9,rule,side penalty interval,INT,3,,always,TRUE,TRUE
+3,10,rule,max score,INT,800,,always,TRUE,TRUE
+0,11,enabled move,double tap,BOOL,TRUE,,always,TRUE,TRUE
+1,12,enabled move,invert,BOOL,TRUE,,always,TRUE,TRUE
+2,13,enabled move,switch cap,BOOL,TRUE,,always,TRUE,TRUE
+3,14,enabled move,tilting,BOOL,TRUE,,always,TRUE,TRUE
+0,15,enabled move,space bump,BOOL,TRUE,,always,TRUE,TRUE
+1,16,keycap,primary left,STRING,tabula,,always,TRUE,TRUE
+2,17,keycap,secondary left,STRING,sine,,always,TRUE,TRUE
+3,18,keycap,primary right,STRING,tabula,,always,TRUE,TRUE
+0,19,keycap,secondary right,STRING,sine,,always,TRUE,TRUE
+0,20,ball,ball,INT,0,,always,FALSE,TRUE
+1,21,goal,walls,INT,50,"(if 0, doesnt exist, if more, thats how many points ) ",always,TRUE,TRUE
+2,22,goal,floating balls,INT,50,,always,TRUE,TRUE
+3,23,goal,basketball hoops,INT,0,,always,TRUE,TRUE
+4,24,goal,yinyang,INT,0,,always,FALSE,TRUE
+5,25,goal,bounce 3 times on side,INT,0,,always,FALSE,TRUE
+0,26,goal,golf hole,INT,0,,always,FALSE,TRUE
+0,27,reset,reset,STRING,loop,"(center, loop, bounce back)",always,FALSE,TRUE
+1,28,spatial,spacing between keys,STRING,medium,"(closed, medium, large)",always,FALSE,TRUE
+2,29,spatial,orthogonal,BOOL,TRUE,,always,TRUE,TRUE
+3,30,spatial,flat,INT,1,(0-10 for probability),always,FALSE,TRUE
+4,31,spatial,valley,INT,0,(0-10 for probability),always,FALSE,TRUE
+5,32,spatial,hill,INT,0,(0-10 for probability),always,FALSE,TRUE
+6,33,spatial,stairs right,INT,0,(0-10 for probability),always,FALSE,TRUE
+7,34,spatial,stairs left,INT,0,(0-10 for probability),always,FALSE,TRUE
+8,35,spatial,waves,INT,0,(0-10 for probability),always,FALSE,TRUE
+9,36,spatial,arena,INT,0,(0-10 for probability),always,FALSE,TRUE
+10,37,spatial,snoring,INT,0,(0-10 for probability),always,FALSE,TRUE
+0,38,spatial,spatial interval,INT,18,,always,FALSE,TRUE
+1,39,spawn,bread,INT,0,(0-10 for probability),always,FALSE,TRUE
+2,40,spawn,platform,INT,0,(0-10 for probability),always,FALSE,TRUE
+3,41,spawn,moving platform,INT,4,(0-10 for probability),always,FALSE,TRUE
+4,42,spawn,water ball,INT,0,(0-10 for probability),always,FALSE,TRUE
+5,43,spawn,impulse ball,INT,5,(0-10 for probability),always,FALSE,TRUE
+6,44,spawn,slo-mo ball,INT,0,(0-10 for probability),always,FALSE,TRUE
+7,45,spawn,world randomizer ball,INT,0,(0-10 for probability),always,FALSE,TRUE
+8,46,spawn,ikea table,INT,0,(0-10 for probability),always,FALSE,TRUE
+0,47,spawn,spawn interval,INT,12,,always,FALSE,TRUE
+0,48,level,level,STRING,1,,always,TRUE,TRUE

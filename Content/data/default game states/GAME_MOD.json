@@ -1,0 +1,65 @@
+{
+    "title": "KeyBall",
+    "board": {
+        "symmetry": false,
+        "max keys": false,
+        "inverted controls": false,
+        "cooldown": false,
+        "layers": false,
+        "crumbling layers": false
+    },
+    "scoring": {
+        "max duration": 120,
+        "side penalty": 10,
+        "side penalty interval": 3,
+        "max score": 80
+    },
+    "enabled moves": {
+        "double tap": true,
+        "invert": true,
+        "switch cap": true,
+        "tilting": true,
+        "space bump": true
+    },
+    "keycaps": {
+        "primary left": "tabula",
+        "secondary left": "sine",
+        "primary right": "tabula",
+        "secondary right": "sine"
+    },
+    "balls": 1,
+    "goals": {
+        "walls": true,
+        "floating balls": false,
+        "basketball hoops": false,
+        "yinyang": false,
+        "bounce 3 times on side": false,
+        "golf hole": false
+    },
+    "reset": "loop",
+    "spatial": {
+        "spacing between keys": 1,
+        "orthogonal": false,
+        "flat": 1,
+        "valley": 1,
+        "hill": 1,
+        "stairs right": 1,
+        "stairs left": 1,
+        "waves": 1,
+        "arena": 1,
+        "snoring": 1,
+        "spatial interval": 1
+    },
+    "pickups": {
+        "bread": 1,
+        "platform": 1,
+        "moving platform": 1,
+        "water ball": 1,
+        "impulse ball": 1,
+        "slo-mo ball": 1,
+        "world randomizer ball": 1,
+        "ikea table": 1,
+        "spawn interval": 18
+    },
+    "level": "court"
+}

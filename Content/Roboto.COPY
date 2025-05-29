@@ -1,0 +1,4 @@
+Begin Object Class=/Script/Engine.Font Name="Roboto"
+   FontCacheType=Runtime
+   CompositeFont=(DefaultTypeface=(Fonts=((Name="Font",Font=(FontFaceAsset=FontFace'"/Engine/EngineFonts/DejaVuSans.DejaVuSans"')),(Name="Font_0",Font=(FontFaceAsset=FontFace'"/Engine/EngineFonts/DejaVuSerif.DejaVuSerif"')),(Name="Font_1",Font=(FontFaceAsset=FontFace'"/Engine/EngineFonts/Faces/RobotoRegular.RobotoRegular"')),(Name="Font_3",Font=(FontFaceAsset=FontFace'"/Engine/EngineFonts/Prompt-Regular.Prompt-Regular"')),(Name="Font_2",Font=(FontFaceAsset=FontFace'"/Engine/EngineFonts/DroidSansThai-Bx5l.DroidSansThai-Bx5l"')))),FallbackTypeface=(Typeface=(Fonts=((Name="Font",Font=(FontFaceAsset=FontFace'"/Engine/EngineFonts/Faces/DroidSansFallback.DroidSansFallback"')),(Name="Font_0",Font=(FontFaceAsset=FontFace'"/Engine/EngineFonts/itim.itim"'))))))
+End Object

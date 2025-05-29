@@ -1,0 +1,4 @@
+*.json
+.
+/
+default game states/GAME_MOD.json

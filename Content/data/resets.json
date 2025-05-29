@@ -1,0 +1,20 @@
+[
+    {
+        "label": "classic",
+        "name": "classic",
+        "visible": true,
+        "description": "Ball resets in the middle of the keyboard"
+    },
+    {
+        "label": "looping",
+        "name": "looping",
+        "visible": true,
+        "description": "Ball resets in the middle of the keyboard"
+    },
+    {
+        "label": "bounce back",
+        "name": "bounce back",
+        "visible": true,
+        "description": "Ball rebounds on hitting a goal"
+    }
+]

@@ -1,0 +1,39 @@
+[
+    {
+        "label": "flat",
+        "name": "flat",
+        "description": "normal flat keyboard"
+    },
+    {
+        "label": "valley",
+        "name": "valley",
+        "description": "board goes down in the centre"
+    },
+    {
+        "label": "hill",
+        "name": "hill",
+        "description": "board goes up in the centre"
+    },
+    {
+        "label": "stairs right",
+        "name": "stairs_right",
+        "visible": true,
+        "description": "board goes up to the right"
+    },
+    {
+        "label": "stairs left",
+        "name": "stairs_left",
+        "visible": true,
+        "description": "board goes up to the left"
+    },
+    {
+        "label": "waves",
+        "name": "waves",
+        "description": "board ripples up and down like waves"
+    },
+    {
+        "label": "arena",
+        "name": "arena",
+        "description": "board looks like arena benches"
+    }
+]
