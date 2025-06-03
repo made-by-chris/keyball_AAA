@@ -1,41 +1,44 @@
 {
-    "FileVersion": 3,
-    "EngineAssociation": "4.26",
-    "Category": "",
-    "Description": "",
-    "DisableSandbox": true,
-    "Modules": [
-        {
-            "Name": "keyball_AAA",
-            "Type": "Runtime",
-            "LoadingPhase": "Default",
-            "AdditionalDependencies": [
-                "Engine"
-            ]
-        }
-    ],
-    "Plugins": [
-        {
-            "Name": "VaRest",
-            "Enabled": true,
-            "MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/e47be161e7a24e928560290abd5dcc4f"
-        },
-        {
-            "Name": "Text3D",
-            "Enabled": true
-        },
-        {
-            "Name": "AdvancedSessions",
-            "Enabled": true
-        },
-        {
-            "Name": "SteamVR",
-            "Enabled": false,
-            "SupportedTargetPlatforms": [
-                "Win32",
-                "Win64",
-                "Linux"
-            ]
-        }
-    ]
+	"FileVersion": 3,
+	"EngineAssociation": "4.26",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "keyball_AAA",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine"
+			]
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "VaRest",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/e47be161e7a24e928560290abd5dcc4f"
+		},
+		{
+			"Name": "Text3D",
+			"Enabled": true
+		},
+		{
+			"Name": "AdvancedSessions",
+			"Enabled": true
+		},
+		{
+			"Name": "SteamVR",
+			"Enabled": false,
+			"SupportedTargetPlatforms": [
+				"Win32",
+				"Win64",
+				"Linux"
+			]
+		},
+		{
+			"Name": "EditorScriptingUtilities",
+			"Enabled": true
+		}
+	]
 }
