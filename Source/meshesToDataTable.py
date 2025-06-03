@@ -1,9 +1,10 @@
 import unreal
 
-# CONFIG
-folder_path = "/Game/Imported"  # Change to your mesh folder
-data_table_path = "/Game/Data/DT_StaticMeshSets"  # Your DataTable asset
-row_name = "MeshSet_01"
+# /Users/basiclaser/projects/keyball/Content/Keys/vw-1
+# /Users/basiclaser/projects/keyball/Content/data/DT_KeyboardData.uasset
+folder_path = "/Game/Keys/vw-1"
+data_table_path = "/Game/data/DT_KeyboardData"
+row_name = "vw-1"
 
 # Load the DataTable
 data_table = unreal.EditorAssetLibrary.load_asset(data_table_path)
