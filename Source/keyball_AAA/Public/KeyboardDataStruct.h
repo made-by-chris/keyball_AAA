@@ -1,7 +1,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Engine/DataTable.h" // For FTableRowBase
 #include "Engine/StaticMesh.h"
 #include "KeyboardDataStruct.generated.h"
 
@@ -32,7 +31,7 @@ enum class Less_Than_40Algo : uint8
 };
 
 USTRUCT(BlueprintType)
-struct FKeyboardDataStruct : public FTableRowBase
+struct FKeyboardDataStruct
 {
     GENERATED_BODY()
 

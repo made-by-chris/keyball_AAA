@@ -7,7 +7,7 @@ public class keyball_AAA : ModuleRules
     {
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
     
-        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "AssetRegistry" });
+        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "AssetRegistry", "Json", "JsonUtilities" });
 
         PrivateDependencyModuleNames.AddRange(new string[] { });
 

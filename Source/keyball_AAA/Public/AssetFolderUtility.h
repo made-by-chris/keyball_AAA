@@ -82,13 +82,4 @@ public:
         bool bRecursive = true,
         UClass* AssetClass = nullptr
     );
-
-    /**
-     * Update an existing row in a Data Table with new data
-     * @param DataTable - The Data Table to modify
-     * @param RowData - The new data to write to the row (FKeyboardDataStruct)
-     * @return True if the update was successful
-     */
-    UFUNCTION(BlueprintCallable, Category = "Asset Folder Utility", meta = (DevelopmentOnly = "true"))
-    static bool UpdateDtRow(UDataTable* DataTable, const FKeyboardDataStruct& RowData);
 };

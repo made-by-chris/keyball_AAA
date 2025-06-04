@@ -1,0 +1,196 @@
+[
+	{
+		"name": "tabula",
+		"staticMesh": [
+			"/Game/Keys/topleft.topleft",
+			"/Game/Keys/topright.topright",
+			"/Game/Keys/bottomright.bottomright",
+			"/Game/Keys/bottomleft.bottomleft",
+			"/Game/Keys/bottom.bottom",
+			"/Game/Keys/right.right",
+			"/Game/Keys/top.top",
+			"/Game/Keys/left.left",
+			"/Game/Keys/center.center"
+		],
+		"status": "Free",
+		"active": false,
+		"keyboardType": "LessThan40",
+		"displayScale": 0.5,
+		"LessThan40Algo": "edgesThenCenter"
+	},
+	{
+		"name": "velum v1",
+		"staticMesh": [
+			"/Game/Keys/topleft.topleft",
+			"/Game/Keys/topright.topright",
+			"/Game/Keys/bottomright.bottomright",
+			"/Game/Keys/bottomleft.bottomleft",
+			"/Game/Keys/bottom.bottom",
+			"/Game/Keys/right.right",
+			"/Game/Keys/top.top",
+			"/Game/Keys/left.left",
+			"/Game/Keys/velumCenter2.velumCenter2"
+		],
+		"status": "Free",
+		"active": false,
+		"keyboardType": "LessThan40",
+		"displayScale": 0.5,
+		"LessThan40Algo": "edgesThenCenter"
+	},
+	{
+		"name": "sine",
+		"staticMesh": [
+			"/Game/Keys/sine1.sine1",
+			"/Game/Keys/sine2.sine2"
+		],
+		"status": "Free",
+		"active": false,
+		"keyboardType": "LessThan40",
+		"displayScale": 1,
+		"LessThan40Algo": "Loop"
+	},
+	{
+		"name": "saw",
+		"staticMesh": [
+			"/Game/Keys/sawleft.sawleft"
+		],
+		"status": "Free",
+		"active": false,
+		"keyboardType": "LessThan40",
+		"displayScale": 1,
+		"LessThan40Algo": "HalvesRotated"
+	},
+	{
+		"name": "diamond",
+		"staticMesh": [
+			"/Game/Keys/diamond.diamond"
+		],
+		"status": "Locked",
+		"active": false,
+		"keyboardType": "LessThan40",
+		"displayScale": 1,
+		"LessThan40Algo": "Loop"
+	},
+	{
+		"name": "regular",
+		"staticMesh": [
+			"/Game/Keys/realisticKeyCap.realisticKeyCap"
+		],
+		"status": "Free",
+		"active": false,
+		"keyboardType": "LessThan40",
+		"displayScale": 1,
+		"LessThan40Algo": "Loop"
+	},
+	{
+		"name": "nubs",
+		"staticMesh": [
+			"/Game/Keys/nubs.nubs"
+		],
+		"status": "Free",
+		"active": false,
+		"keyboardType": "LessThan40",
+		"displayScale": 1,
+		"LessThan40Algo": "Loop"
+	},
+	{
+		"name": "vw-1",
+		"staticMesh": [
+			"/Game/Keys/vw-1/vw_1_0.vw_1_0",
+			"/Game/Keys/vw-1/vw_1_1.vw_1_1",
+			"/Game/Keys/vw-1/vw_1_2.vw_1_2",
+			"/Game/Keys/vw-1/vw_1_3.vw_1_3",
+			"/Game/Keys/vw-1/vw_1_4.vw_1_4",
+			"/Game/Keys/vw-1/vw_1_5.vw_1_5",
+			"/Game/Keys/vw-1/vw_1_6.vw_1_6",
+			"/Game/Keys/vw-1/vw_1_7.vw_1_7",
+			"/Game/Keys/vw-1/vw_1_8.vw_1_8",
+			"/Game/Keys/vw-1/vw_1_9.vw_1_9",
+			"/Game/Keys/vw-1/vw_1_10.vw_1_10",
+			"/Game/Keys/vw-1/vw_1_11.vw_1_11",
+			"/Game/Keys/vw-1/vw_1_12.vw_1_12",
+			"/Game/Keys/vw-1/vw_1_13.vw_1_13",
+			"/Game/Keys/vw-1/vw_1_14.vw_1_14",
+			"/Game/Keys/vw-1/vw_1_15.vw_1_15",
+			"/Game/Keys/vw-1/vw_1_16.vw_1_16",
+			"/Game/Keys/vw-1/vw_1_17.vw_1_17",
+			"/Game/Keys/vw-1/vw_1_18.vw_1_18",
+			"/Game/Keys/vw-1/vw_1_19.vw_1_19",
+			"/Game/Keys/vw-1/vw_1_20.vw_1_20",
+			"/Game/Keys/vw-1/vw_1_21.vw_1_21",
+			"/Game/Keys/vw-1/vw_1_22.vw_1_22",
+			"/Game/Keys/vw-1/vw_1_23.vw_1_23",
+			"/Game/Keys/vw-1/vw_1_24.vw_1_24",
+			"/Game/Keys/vw-1/vw_1_25.vw_1_25",
+			"/Game/Keys/vw-1/vw_1_26.vw_1_26",
+			"/Game/Keys/vw-1/vw_1_27.vw_1_27",
+			"/Game/Keys/vw-1/vw_1_28.vw_1_28",
+			"/Game/Keys/vw-1/vw_1_29.vw_1_29",
+			"/Game/Keys/vw-1/vw_1_30.vw_1_30",
+			"/Game/Keys/vw-1/vw_1_31.vw_1_31",
+			"/Game/Keys/vw-1/vw_1_32.vw_1_32",
+			"/Game/Keys/vw-1/vw_1_33.vw_1_33",
+			"/Game/Keys/vw-1/vw_1_34.vw_1_34",
+			"/Game/Keys/vw-1/vw_1_35.vw_1_35",
+			"/Game/Keys/vw-1/vw_1_36.vw_1_36",
+			"/Game/Keys/vw-1/vw_1_37.vw_1_37",
+			"/Game/Keys/vw-1/vw_1_38.vw_1_38",
+			"/Game/Keys/vw-1/vw_1_39.vw_1_39"
+		],
+		"status": "Locked",
+		"active": false,
+		"keyboardType": "Regular40",
+		"displayScale": 1,
+		"LessThan40Algo": "Loop"
+	},
+	{
+		"name": "wave",
+		"staticMesh": [
+			"/Game/Keys/wave-1/wave_1_0.wave_1_0",
+			"/Game/Keys/wave-1/wave_1_1.wave_1_1",
+			"/Game/Keys/wave-1/wave_1_2.wave_1_2",
+			"/Game/Keys/wave-1/wave_1_3.wave_1_3",
+			"/Game/Keys/wave-1/wave_1_4.wave_1_4",
+			"/Game/Keys/wave-1/wave_1_5.wave_1_5",
+			"/Game/Keys/wave-1/wave_1_6.wave_1_6",
+			"/Game/Keys/wave-1/wave_1_7.wave_1_7",
+			"/Game/Keys/wave-1/wave_1_8.wave_1_8",
+			"/Game/Keys/wave-1/wave_1_9.wave_1_9",
+			"/Game/Keys/wave-1/wave_1_10.wave_1_10",
+			"/Game/Keys/wave-1/wave_1_11.wave_1_11",
+			"/Game/Keys/wave-1/wave_1_12.wave_1_12",
+			"/Game/Keys/wave-1/wave_1_13.wave_1_13",
+			"/Game/Keys/wave-1/wave_1_14.wave_1_14",
+			"/Game/Keys/wave-1/wave_1_15.wave_1_15",
+			"/Game/Keys/wave-1/wave_1_16.wave_1_16",
+			"/Game/Keys/wave-1/wave_1_17.wave_1_17",
+			"/Game/Keys/wave-1/wave_1_18.wave_1_18",
+			"/Game/Keys/wave-1/wave_1_19.wave_1_19",
+			"/Game/Keys/wave-1/wave_1_20.wave_1_20",
+			"/Game/Keys/wave-1/wave_1_21.wave_1_21",
+			"/Game/Keys/wave-1/wave_1_22.wave_1_22",
+			"/Game/Keys/wave-1/wave_1_23.wave_1_23",
+			"/Game/Keys/wave-1/wave_1_24.wave_1_24",
+			"/Game/Keys/wave-1/wave_1_25.wave_1_25",
+			"/Game/Keys/wave-1/wave_1_26.wave_1_26",
+			"/Game/Keys/wave-1/wave_1_27.wave_1_27",
+			"/Game/Keys/wave-1/wave_1_28.wave_1_28",
+			"/Game/Keys/wave-1/wave_1_29.wave_1_29",
+			"/Game/Keys/wave-1/wave_1_30.wave_1_30",
+			"/Game/Keys/wave-1/wave_1_31.wave_1_31",
+			"/Game/Keys/wave-1/wave_1_32.wave_1_32",
+			"/Game/Keys/wave-1/wave_1_33.wave_1_33",
+			"/Game/Keys/wave-1/wave_1_34.wave_1_34",
+			"/Game/Keys/wave-1/wave_1_35.wave_1_35",
+			"/Game/Keys/wave-1/wave_1_36.wave_1_36",
+			"/Game/Keys/wave-1/wave_1_37.wave_1_37",
+			"/Game/Keys/wave-1/wave_1_38.wave_1_38",
+			"/Game/Keys/wave-1/wave_1_39.wave_1_39"
+		],
+		"status": "Locked",
+		"active": false,
+		"keyboardType": "Regular40",
+		"displayScale": 1.1,
+		"LessThan40Algo": "Loop"
+	}
+]

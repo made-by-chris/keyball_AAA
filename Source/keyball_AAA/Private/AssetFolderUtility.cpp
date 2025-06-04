@@ -126,38 +126,3 @@ TArray<TSoftObjectPtr<UObject>> UAssetFolderUtility::GetSoftReferencesFromFolder
     return SoftReferences;
 }
 
-bool UAssetFolderUtility::UpdateDtRow(UDataTable* DataTable, const FKeyboardDataStruct& RowData)
-{
-#if WITH_EDITOR
-    if (!DataTable)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("No Data Table provided to UpdateDtRow"));
-        return false;
-    }
-
-    // Use keyboardName from RowData as the row name
-    FName RowNameFName = RowData.keyboardName;
-
-    // Check if the row exists
-    if (DataTable->FindRowUnchecked(RowNameFName) == nullptr)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("Row %s not found in Data Table"), *RowNameFName.ToString());
-        return false;
-    }
-
-    // Remove the existing row
-    DataTable->RemoveRow(RowNameFName);
-
-    // Add the new row with updated data
-    DataTable->AddRow(RowNameFName, RowData);
-
-    // Mark the Data Table as dirty to save changes
-    DataTable->MarkPackageDirty();
-
-    UE_LOG(LogTemp, Log, TEXT("Successfully updated row %s in Data Table"), *RowNameFName.ToString());
-    return true;
-#else
-    UE_LOG(LogTemp, Warning, TEXT("UpdateDtRow can only be used in editor builds"));
-    return false;
-#endif
-}
