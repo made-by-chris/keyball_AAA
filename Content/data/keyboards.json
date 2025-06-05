@@ -190,7 +190,7 @@
 		"status": "Locked",
 		"active": false,
 		"keyboardType": "Regular40",
-		"displayScale": 1.1,
+		"displayScale": 2,
 		"LessThan40Algo": "Loop"
 	}
 ]
