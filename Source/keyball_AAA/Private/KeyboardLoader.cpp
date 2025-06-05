@@ -63,10 +63,6 @@ TArray<FKeyboardDataStruct> UKeyboardLoader::LoadKeyboardsFromJson()
 
         AllKeyboards.Add(Keyboard);
 
-        // Optional screen log for debugging
-        GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green,
-            FString::Printf(TEXT("Loaded keyboard: %s with %d mesh(es)"),
-                *Keyboard.keyboardName.ToString(), Keyboard.staticMesh.Num()));
     }
 
     return AllKeyboards;
