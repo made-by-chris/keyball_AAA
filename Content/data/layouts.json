@@ -1,6 +1,7 @@
 [
     {
         "name": "qwerty",
+        "info": "English (US, UK, Canada, Australia, etc.)",
         "keys": [
             "1",
             "2",
@@ -46,6 +47,7 @@
     },
     {
         "name": "qwertz",
+        "info": "Deutsch (Germany, Austria, Switzerland)",
         "keys": [
             "1",
             "2",
@@ -91,6 +93,7 @@
     },
     {
         "name": "azerty",
+        "info": "Français (France, Belgium)",
         "keys": [
             "&",
             "é",
@@ -136,6 +139,7 @@
     },
     {
         "name": "NO",
+        "info": "Norsk (Norway)",
         "keys": [
             "1",
             "2",
@@ -181,6 +185,7 @@
     },
     {
         "name": "ES",
+        "info": "Español (Spain, Latin America)",
         "keys": [
             "1",
             "2",
@@ -226,6 +231,7 @@
     },
     {
         "name": "RU",
+        "info": "Русский (Russia)",
         "keys": [
             "1",
             "2",
@@ -271,6 +277,7 @@
     },
     {
         "name": "UA",
+        "info": "Українська (Ukraine)",
         "keys": [
             "1",
             "2",
@@ -316,6 +323,7 @@
     },
     {
         "name": "HR",
+        "info": "Hrvatski (Croatia, Balkans)",
         "keys": [
             "1",
             "2",
@@ -361,6 +369,7 @@
     },
     {
         "name": "dvorak",
+        "info": "Dvorak (English ergonomic)",
         "keys": [
             "1",
             "2",
@@ -406,6 +415,7 @@
     },
     {
         "name": "arabic",
+        "info": "العربية (Arabic – Middle East/North Africa)",
         "keys": [
             "1",
             "2",
@@ -450,6 +460,7 @@
     },
     {
         "name": "colemak",
+        "info": "Colemak (English ergonomic)",
         "keys": [
             "1",
             "2",
@@ -495,6 +506,7 @@
     },
     {
         "name": "workman",
+        "info": "Workman (English ergonomic)",
         "keys": [
             "1",
             "2",
@@ -540,6 +552,7 @@
     },
     {
         "name": "BG",
+        "info": "Български (Bulgaria)",
         "keys": [
             "1",
             "2",
@@ -585,6 +598,7 @@
     },
     {
         "name": "IL",
+        "info": "עברית (Israel)",
         "keys": [
             "1",
             "2",
@@ -628,6 +642,7 @@
     },
     {
         "name": "KR",
+        "info": "한국어 (South Korea)",
         "keys": [
             "1",
             "2",
@@ -673,6 +688,7 @@
     },
     {
         "name": "IT",
+        "info": "Italiano (Italy)",
         "keys": [
             "1",
             "2",
@@ -718,6 +734,7 @@
     },
     {
         "name": "PT",
+        "info": "Português (Portugal, Brazil)",
         "keys": [
             "1",
             "2",
@@ -763,6 +780,7 @@
     },
     {
         "name": "TH",
+        "info": "ไทย (Thailand)",
         "keys": [
             "ๅ",
             "/",
@@ -808,6 +826,7 @@
     },
     {
         "name": "SE",
+        "info": "Svenska (Sweden)",
         "keys": [
             "1",
             "2",
@@ -853,6 +872,7 @@
     },
     {
         "name": "TR",
+        "info": "Türkçe (Turkey)",
         "keys": [
             "1",
             "2",
@@ -898,6 +918,7 @@
     },
     {
         "name": "JP",
+        "info": "日本語 (Japan – JIS layout)",
         "keys": [
             "1",
             "2",
@@ -943,6 +964,7 @@
     },
     {
         "name": "IN",
+        "info": "हिंदी (India – QWERTY, Hindi-compatible)",
         "keys": [
             "1",
             "2",
@@ -988,6 +1010,7 @@
     },
     {
         "name": "CN",
+        "info": "简体中文 (China – Pinyin input)",
         "keys": [
             "1",
             "2",
@@ -1033,6 +1056,7 @@
     },
     {
         "name": "PL",
+        "info": "Polski (Poland)",
         "keys": [
             "1",
             "2",
@@ -1078,6 +1102,7 @@
     },
     {
         "name": "PK",
+        "info": "اردو (Pakistan)",
         "keys": [
             "1",
             "2",
@@ -1123,6 +1148,7 @@
     },
     {
         "name": "GR",
+        "info": "Ελληνικά (Greece)",
         "keys": [
             "1",
             "2",
@@ -1168,6 +1194,7 @@
     },
     {
         "name": "FA",
+        "info": "فارسی (Iran)",
         "keys": [
             "۱",
             "۲",
