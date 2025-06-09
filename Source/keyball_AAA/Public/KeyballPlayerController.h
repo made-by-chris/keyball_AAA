@@ -46,6 +46,16 @@ public:
     UFUNCTION(Server, Reliable)
     void ServerHandleKeyPress(const FKey& PressedKey);
 
+
+    UFUNCTION(BlueprintCallable, Category="KeyPress")
+    void ClientKeyReleased(FKey Key);
+
+    UFUNCTION(Server, Reliable)
+    void ServerHandleKeyRelease(const FKey& ReleasedKey);
+
+    void HandleKeyRelease(const FKey& ReleasedKey);
+
+
 protected:
     // The actual keypress logic (runs only on server)
     void HandleKeyPress(const FKey& PressedKey);

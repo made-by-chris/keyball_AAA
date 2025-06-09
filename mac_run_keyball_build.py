@@ -2,6 +2,7 @@
 import os
 import shutil
 import subprocess
+import argparse
 
 # === CONFIGURATION ===
 PROJECT_NAME = "keyball"
@@ -32,20 +33,30 @@ def clean_temp_folders():
             print(f"Not found: {d}")
 
 # === MAIN STEPS ===
+def main():
+    parser = argparse.ArgumentParser(description='Build and launch UE4 project')
+    parser.add_argument('--rebuild', action='store_true', help='Perform a full rebuild including cleaning temp folders and launching the editor')
+    args = parser.parse_args()
 
-# Step 0: Clean up
-clean_temp_folders()
+    # Step 0: Clean up (only if --rebuild is specified)
+    if args.rebuild:
+        clean_temp_folders()
 
-# Step 1: Generate project files
-generate_script = os.path.join(ENGINE_PATH, "Engine/Build/BatchFiles/Mac/GenerateProjectFiles.sh")
-run(f'"{generate_script}" -project="{UPROJECT_PATH}" -game -engine')
+    # Step 1: Generate project files
+    generate_script = os.path.join(ENGINE_PATH, "Engine/Build/BatchFiles/Mac/GenerateProjectFiles.sh")
+    run(f'"{generate_script}" -project="{UPROJECT_PATH}" -game -engine')
 
-# Step 2: Build the project
-build_script = os.path.join(ENGINE_PATH, "Engine/Build/BatchFiles/Mac/Build.sh")
-run(f'"{build_script}" {TARGET_NAME}Editor Mac {BUILD_CONFIG} "{UPROJECT_PATH}"')
+    # Step 2: Build the project
+    build_script = os.path.join(ENGINE_PATH, "Engine/Build/BatchFiles/Mac/Build.sh")
+    run(f'"{build_script}" {TARGET_NAME}Editor Mac {BUILD_CONFIG} "{UPROJECT_PATH}"')
 
-# Step 3: Launch UE4 Editor
-editor_exe = os.path.join(ENGINE_PATH, "Engine/Binaries/Mac/UE4Editor.app/Contents/MacOS/UE4Editor")
-run(f'"{editor_exe}" "{UPROJECT_PATH}"')
+    # Step 3: Launch UE4 Editor (only if --rebuild is specified)
+    if args.rebuild:
+        editor_exe = os.path.join(ENGINE_PATH, "Engine/Binaries/Mac/UE4Editor.app/Contents/MacOS/UE4Editor")
+        run(f'"{editor_exe}" "{UPROJECT_PATH}"')
+        print("\n✅ All done. Editor should be launching now.\n")
+    else:
+        print("\n✅ Build completed successfully.\n")
 
-print("\n✅ All done. Editor should be launching now.\n")
+if __name__ == "__main__":
+    main()

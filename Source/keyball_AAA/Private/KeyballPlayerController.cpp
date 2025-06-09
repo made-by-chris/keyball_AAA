@@ -78,8 +78,6 @@ void AKeyballPlayerController::HandleKeyPress(const FKey& PressedKey)
         // Ensure it's a BP_Key actor
         if (Actor->GetClass()->GetName().Contains("BP_Key"))
         {
-            UE_LOG(LogTemp, Log, TEXT("I'm looping over: %s"), *Actor->GetName());
-
             // Try to get the "Symbol" property
             FString Symbol;
             FName SymbolName(TEXT("Symbol"));
@@ -92,8 +90,8 @@ void AKeyballPlayerController::HandleKeyPress(const FKey& PressedKey)
                 // Compare with pressed keys
                 if (CurrentlyPressedKeys.Contains(Symbol))
                 {
-                    // Call "SetKeyActive(true)" on the actor
-                    static FName FuncName(TEXT("SetKeyActive"));
+                    // Call "Set Key Active(true)" on the actor
+                    static FName FuncName(TEXT("Set Key Active"));
                     UFunction* Func = Actor->FindFunction(FuncName);
 
                     if (Func)
@@ -109,7 +107,7 @@ void AKeyballPlayerController::HandleKeyPress(const FKey& PressedKey)
                     }
                     else
                     {
-                        UE_LOG(LogTemp, Warning, TEXT("Function SetKeyActive not found on actor: %s"), *Actor->GetName());
+                        UE_LOG(LogTemp, Warning, TEXT("Function Set Key Active not found on actor: %s"), *Actor->GetName());
                     }
                 }
             }
@@ -178,4 +176,88 @@ int32 AKeyballPlayerController::GetTeamNumber() const
 
     UE_LOG(LogTemp, Warning, TEXT("PlayerState is not a KeyballPlayerState"));
     return -1;
+}
+
+
+
+
+void AKeyballPlayerController::ClientKeyReleased(FKey Key)
+{
+    if (HasAuthority())
+    {
+        ServerHandleKeyRelease(Key);
+    }
+    else
+    {
+        ServerHandleKeyRelease(Key); // trigger RPC
+    }
+}
+
+void AKeyballPlayerController::ServerHandleKeyRelease_Implementation(const FKey& ReleasedKey)
+{
+    HandleKeyRelease(ReleasedKey);
+}
+
+void AKeyballPlayerController::HandleKeyRelease(const FKey& ReleasedKey)
+{
+    const FString KeyString = ReleasedKey.ToString();
+
+    // Remove from pressed keys
+    CurrentlyPressedKeys.Remove(KeyString);
+
+    // Update keyball combo
+    FKeyballComboResult ComboResult = UKeyballComboDetector::DetectKeyballCombo(selectedLayout, CurrentlyPressedKeys);
+    KeyballCombo = ComboResult;
+
+    UE_LOG(LogTemp, Log, TEXT("Key released: %s"), *KeyString);
+    UE_LOG(LogTemp, Log, TEXT("Updated pressed keys: %s"), *FString::Join(CurrentlyPressedKeys, TEXT(", ")));
+
+    // Shift toggles
+    if (ReleasedKey == EKeys::LeftShift || ReleasedKey == EKeys::Tab)
+    {
+        leftShiftActive = false;
+    }
+    else if (ReleasedKey == EKeys::RightShift || ReleasedKey == EKeys::Delete)
+    {
+        rightShiftActive = false;
+    }
+
+    // Find BP_Key actor and deactivate it
+    for (TActorIterator<AActor> It(GetWorld()); It; ++It)
+    {
+        AActor* Actor = *It;
+        if (Actor->GetClass()->GetName().Contains("BP_Key"))
+        {
+            FName SymbolName("Symbol");
+            FProperty* SymbolProp = Actor->GetClass()->FindPropertyByName(SymbolName);
+
+            if (FStrProperty* StrProp = CastField<FStrProperty>(SymbolProp))
+            {
+                FString Symbol = StrProp->GetPropertyValue_InContainer(Actor);
+
+                if (Symbol.ToLower() == KeyString.ToLower())
+                {
+                    static FName FuncName("Set Key Active");
+                    UFunction* Func = Actor->FindFunction(FuncName);
+
+                    if (Func)
+                    {
+                        struct FSetKeyActiveParams
+                        {
+                            bool Active;
+                        };
+
+                        FSetKeyActiveParams Params;
+                        Params.Active = false;
+                        Actor->ProcessEvent(Func, &Params);
+                        UE_LOG(LogTemp, Log, TEXT("Set key inactive: %s"), *Symbol);
+                    }
+                    else
+                    {
+                        UE_LOG(LogTemp, Warning, TEXT("Function Set Key Active not found on: %s"), *Actor->GetName());
+                    }
+                }
+            }
+        }
+    }
 }
