@@ -99,10 +99,12 @@ void AKeyballPlayerController::HandleKeyPress(const FKey& PressedKey)
                         struct FSetKeyActiveParams
                         {
                             bool Active;
+                            bool shiftIsActive;
                         };
 
                         FSetKeyActiveParams Params;
                         Params.Active = true;
+                        Params.shiftIsActive = false;
                         Actor->ProcessEvent(Func, &Params);
                     }
                     else
@@ -245,10 +247,12 @@ void AKeyballPlayerController::HandleKeyRelease(const FKey& ReleasedKey)
                         struct FSetKeyActiveParams
                         {
                             bool Active;
+                            bool shiftIsActive;
                         };
 
                         FSetKeyActiveParams Params;
                         Params.Active = false;
+                        Params.shiftIsActive = false;
                         Actor->ProcessEvent(Func, &Params);
                         UE_LOG(LogTemp, Log, TEXT("Set key inactive: %s"), *Symbol);
                     }
