@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "KeyballComboDetector.h"
 #include "KeyballPlayerController.generated.h"
 
 UCLASS()
@@ -15,16 +16,13 @@ public:
     void ClientKeyPressed(FKey Key);
 
 	UFUNCTION(BlueprintCallable, Category="KeyPress")
-	bool CheckIsValidKey(const FString& Key, bool& bIsValid, bool& bIsSpecial) const;
+	bool CheckIsValidKey(const FKey& Key, bool& bIsValid, bool& bIsSpecial) const;
 
 	UFUNCTION(BlueprintCallable, Category="KeyPress")
-	bool CheckIfOwningPlayerCanPressMoreKeys(int32 Team, int32 Limit) const;
-
-	UFUNCTION(BlueprintCallable, Category="KeyPress")
-	bool CheckKeyOwner(const FString& Key);
+	bool CheckKeyOwner(const FKey& Key);
 
 	UPROPERTY(BlueprintReadWrite, Category="KeyPress")
-	TArray<FString> specialMoveKeys;
+	TArray<FString> specialMoveKeys = { "Left Shift", "Tab", "Right Shift", "Delete" };
 
 	UPROPERTY(BlueprintReadWrite, Category="KeyPress")
 	TArray<FString> selectedLayout;
@@ -38,25 +36,32 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category="KeyPress")
 	int32 team2ActiveKeyCount;
 
+	UPROPERTY(BlueprintReadWrite, Category="KeyPress")
+	bool leftShiftActive;
+
+	UPROPERTY(BlueprintReadWrite, Category="KeyPress")
+	bool rightShiftActive;
 
     // Called on the server — receives input from client
     UFUNCTION(Server, Reliable)
-    void ServerHandleKeyPress(const FString& PressedKey);
+    void ServerHandleKeyPress(const FKey& PressedKey);
 
 protected:
     // The actual keypress logic (runs only on server)
-    void HandleKeyPress(const FString& PressedKey);
+    void HandleKeyPress(const FKey& PressedKey);
 
     // These are assumed to still be Blueprint-defined
     UPROPERTY(BlueprintReadWrite, Category="KeyPress")
     TArray<FString> CurrentlyPressedKeys;
 
     UPROPERTY(BlueprintReadWrite, Category="KeyPress")
-    int32 MaxKeysAllowed;
+    int32 MaxKeysAllowed = 3;
 
 private:
     bool CanPlayerPressMoreKeys();
-    bool CheckForTilt(const FString& Key);
-    FString CalculateSymmetricalKey(int32 Index);
-    TArray<AActor*> KeyStringToActors(const FString& Key);
+    int32 GetTeamNumber() const;
+    TArray<AActor*> KeyStringToActors(const FKey& Key);
+
+    UPROPERTY()
+    FKeyballComboResult KeyballCombo;
 };

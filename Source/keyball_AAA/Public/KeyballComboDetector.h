@@ -50,6 +50,21 @@ struct FKeyballComboResult
 
     UPROPERTY(BlueprintReadOnly)
     bool bOverBorder = false;
+
+    FString ToString() const
+    {
+        FString MoveTypeStr = UEnum::GetValueAsString(MoveType);
+        FString DirectionStr = UEnum::GetValueAsString(Direction);
+        FString KeysStr = FString::Join(Keys, TEXT(", "));
+        FString KeysIndexStr = FString::JoinBy(KeysIndex, TEXT(", "), [](int32 Index) { return FString::FromInt(Index); });
+        
+        return FString::Printf(TEXT("MoveType=%s, Direction=%s, Keys=[%s], KeysIndex=[%s], bOverBorder=%s"),
+            *MoveTypeStr,
+            *DirectionStr,
+            *KeysStr,
+            *KeysIndexStr,
+            bOverBorder ? TEXT("true") : TEXT("false"));
+    }
 };
 
 UCLASS()
