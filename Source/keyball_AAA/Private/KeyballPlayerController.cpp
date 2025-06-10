@@ -18,14 +18,10 @@ AKeyballPlayerController::AKeyballPlayerController()
     UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Eight"), TEXT("8"));
     UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Nine"), TEXT("9"));
     UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Zero"), TEXT("0"));
-    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Comma"), TEXT(","));
     UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Period"), TEXT("."));
     UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Semicolon"), TEXT(";"));
     UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Slash"), TEXT("/"));
     UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Comma"), TEXT(","));
-    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Period"), TEXT("."));
-    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Semicolon"), TEXT(";"));
-    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Slash"), TEXT("/"));
     UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Hyphen"), TEXT("-"));
     UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Ampersand"), TEXT("&"));
     UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Apostrophe"), TEXT("'"));
@@ -111,6 +107,13 @@ void AKeyballPlayerController::HandleKeyPress(const FKey& PressedKey)
 {
     // here gotta add the new pressed key to the pressed keys array, and check and set the keyball combo
     FString KeyString = PressedKey.ToString();
+        // Get natural glyph if it exists in the map
+    FString* NaturalGlyph = UnrealKeyLabelToNaturalGlyphMap.Find(KeyString);
+    if (NaturalGlyph)
+    {
+        KeyString = *NaturalGlyph;
+    }
+
     UE_LOG(LogTemp, Log, TEXT("Key pressed: %s"), *KeyString);
     //on-screen log
     GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, FString::Printf(TEXT("Key pressed: %s"), *KeyString));
@@ -122,12 +125,6 @@ void AKeyballPlayerController::HandleKeyPress(const FKey& PressedKey)
 
     UE_LOG(LogTemp, Log, TEXT("Can press more keys"));
 
-    // Get natural glyph if it exists in the map
-    FString* NaturalGlyph = UnrealKeyLabelToNaturalGlyphMap.Find(KeyString);
-    if (NaturalGlyph)
-    {
-        KeyString = *NaturalGlyph;
-    }
 
     // add the new pressed key to the pressed keys array
     CurrentlyPressedKeys.AddUnique(KeyString);
@@ -137,7 +134,7 @@ void AKeyballPlayerController::HandleKeyPress(const FKey& PressedKey)
         UE_LOG(LogTemp, Log, TEXT("Key pressed is not owned by the player"));
         return;
     }
-    UE_LOG(LogTemp, Log, TEXT("Key pressed is owned by the player"));
+    UE_LOG(LogTemp, Log, TEXT("Key pressed is owned by the player %s"), *KeyString);
     bool bIsValid = false;
     bool bIsSpecial = false;
     CheckIsValidKey(PressedKey, bIsValid, bIsSpecial);
@@ -299,7 +296,14 @@ bool AKeyballPlayerController::ServerHandleKeyRelease_Validate(const FKey& Relea
 
 void AKeyballPlayerController::HandleKeyRelease(const FKey& ReleasedKey)
 {
-    const FString KeyString = ReleasedKey.ToString();
+    FString KeyString = ReleasedKey.ToString();
+
+    // Get natural glyph if it exists in the map
+    FString* NaturalGlyph = UnrealKeyLabelToNaturalGlyphMap.Find(KeyString);
+    if (NaturalGlyph)
+    {
+        KeyString = *NaturalGlyph;
+    }
 
     // Remove from pressed keys
     CurrentlyPressedKeys.Remove(KeyString);
