@@ -8,6 +8,13 @@ FKeyballComboResult UKeyballComboDetector::DetectKeyballCombo(
 {
     FKeyballComboResult Result;
 
+    // Log the selected layout and pressed keys
+    FString LayoutStr = FString::Join(SelectedLayout, TEXT(", "));
+    FString PressedKeysStr = FString::Join(PressedKeys, TEXT(", "));
+    UE_LOG(LogTemp, Log, TEXT("Selected Layout: [%s]"), *LayoutStr);
+    UE_LOG(LogTemp, Log, TEXT("Pressed Keys: [%s]"), *PressedKeysStr);
+    GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, FString::Printf(TEXT("Selected Layout: [%s]"), *LayoutStr));
+    GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, FString::Printf(TEXT("Pressed Keys: [%s]"), *PressedKeysStr));
     if (SelectedLayout.Num() != 40)
         return Result;
 

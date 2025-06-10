@@ -17,6 +17,8 @@ enum class EKeyballMoveType : uint8
     Diagonal
 };
 
+
+
 UENUM(BlueprintType)
 enum class EKeyballDirection : uint8
 {

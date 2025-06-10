@@ -1,25 +1,5 @@
-//#include "SDL.h"
-//#include <stdio.h>
 #include "Keyball_Function_Library.h"
-
-//TMap<uint8, FKey> ScancodeToKey;
-//ScancodeToKey.Add(16, FKey::Q);
-////ScancodeToKey.Add(17, FKey::W);
-//while (SDL_PollEvent(&event)) {
-//    /* We are only worried about SDL_KEYDOWN and SDL_KEYUP events */
-//    switch (event.type) {
-//    case SDL_KEYDOWN:
-//        printf("Key press detected\n");
-//        break;
-//
-//    case SDL_KEYUP:
-//        printf("Key release detected\n");
-//        break;
-//
-//    default:
-//        break;
-//    }
-//}
+#include "Misc/Parse.h"
 
 void UKeyball_Function_Library::GetKeyCode(FKey Key, int& KeyCode, int& CharacterCode)
 {
@@ -29,4 +9,34 @@ void UKeyball_Function_Library::GetKeyCode(FKey Key, int& KeyCode, int& Characte
     
     KeyCode = KeyCodePtr ? *KeyCodePtr : 0;
     CharacterCode = CharCodePtr ? *CharCodePtr : 0;
+}
+
+FString UKeyball_Function_Library::FixUnknownCharCode(const FString& CharCode)
+{
+    // Check if the input starts with "_"
+    if (!CharCode.StartsWith(TEXT("_")))
+    {
+        return FString(TEXT("Invalid input: Expected '_<number>'"));
+    }
+
+    // Extract the number part (e.g., "246" from "_246")
+    FString NumberPart = CharCode.Mid(1);
+
+    // Convert to integer
+    int32 CodePoint;
+    if (!NumberPart.IsNumeric())
+    {
+        return FString(TEXT("Invalid input: Number expected after '_'"));
+    }
+    LexFromString(CodePoint, *NumberPart);
+
+    // Validate code point (basic check for valid Unicode range)
+    if (CodePoint < 0 || CodePoint > 0x10FFFF)
+    {
+        return FString(TEXT("Invalid Unicode code point"));
+    }
+
+    // Convert code point to TCHAR (UTF-16)
+    TCHAR Char = static_cast<TCHAR>(CodePoint);
+    return FString(1, &Char);
 }

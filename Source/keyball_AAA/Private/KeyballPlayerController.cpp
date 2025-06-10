@@ -116,7 +116,7 @@ void AKeyballPlayerController::HandleKeyPress(const FKey& PressedKey)
     }
 
     //on-screen log
-    GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, FString::Printf(TEXT("Key pressed: %s"), *KeyString));
+    // GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, FString::Printf(TEXT("Key pressed: %s"), *KeyString));
 
     // if (!CanPlayerPressMoreKeys())
     // {
@@ -148,9 +148,16 @@ void AKeyballPlayerController::HandleKeyPress(const FKey& PressedKey)
     // }
 
     // check and set the keyball combo
-    // FKeyballComboResult ComboResult = UKeyballComboDetector::DetectKeyballCombo(selectedLayout, CurrentlyPressedKeys);
-    // KeyballCombo = ComboResult;
-
+    FKeyballComboResult ComboResult = UKeyballComboDetector::DetectKeyballCombo(selectedLayout, CurrentlyPressedKeys);
+    KeyballCombo = ComboResult;
+    // if (KeyballCombo.MoveType != EKeyballMoveType::None) {
+        // Print the move type on screen
+        FString MoveTypeStr = UEnum::GetValueAsString(KeyballCombo.MoveType);
+        FString PressedKeysStr = FString::Join(CurrentlyPressedKeys, TEXT(", "));
+        GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, FString::Printf(TEXT("Keyball combo detected: %s | Pressed keys: [%s]"), *MoveTypeStr, *PressedKeysStr));
+        // and in the regular logs
+        UE_LOG(LogTemp, Log, TEXT("Keyball combo detected: %s | Pressed keys: [%s]"), *MoveTypeStr, *PressedKeysStr);
+    // }
     // Iterate over all BP_Key actors in the world
     for (TActorIterator<AActor> It(GetWorld()); It; ++It)
     {
