@@ -29,12 +29,28 @@ FKeyballComboResult UKeyballComboDetector::DetectKeyballCombo(
 
         if (FirstIndex != INDEX_NONE && SecondIndex != INDEX_NONE)
         {
-            Result.MoveType = EKeyballMoveType::Whack;
-            Result.Keys = { FirstKey, SecondKey };
-            Result.KeysIndex = { FirstIndex, SecondIndex };
-            Result.Direction = GetDirection(FirstIndex, SecondIndex);
-            Result.bOverBorder = IsOverBorder(FirstIndex, SecondIndex);
-            if (!Result.bOverBorder) return Result;
+            // Check if keys are adjacent (including diagonals)
+            int32 FirstRow = FirstIndex / 10;
+            int32 FirstCol = FirstIndex % 10;
+            int32 SecondRow = SecondIndex / 10;
+            int32 SecondCol = SecondIndex % 10;
+
+            // Calculate row and column differences
+            int32 RowDiff = FMath::Abs(SecondRow - FirstRow);
+            int32 ColDiff = FMath::Abs(SecondCol - FirstCol);
+
+            // Keys are adjacent if they differ by at most 1 in both row and column
+            bool bIsAdjacent = (RowDiff <= 1 && ColDiff <= 1) && (RowDiff + ColDiff > 0);
+
+            if (bIsAdjacent)
+            {
+                Result.MoveType = EKeyballMoveType::Whack;
+                Result.Keys = { FirstKey, SecondKey };
+                Result.KeysIndex = { FirstIndex, SecondIndex };
+                Result.Direction = GetDirection(FirstIndex, SecondIndex);
+                Result.bOverBorder = IsOverBorder(FirstIndex, SecondIndex);
+                if (!Result.bOverBorder) return Result;
+            }
         }
     }
 
