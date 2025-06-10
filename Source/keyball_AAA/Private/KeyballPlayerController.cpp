@@ -5,6 +5,85 @@
 #include "KeyballComboDetector.h"
 #include "KeyballPlayerState.h"
 
+AKeyballPlayerController::AKeyballPlayerController()
+{
+    // Initialize the key label to natural glyph map
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("One"), TEXT("1"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Two"), TEXT("2"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Three"), TEXT("3"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Four"), TEXT("4"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Five"), TEXT("5"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Six"), TEXT("6"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Seven"), TEXT("7"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Eight"), TEXT("8"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Nine"), TEXT("9"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Zero"), TEXT("0"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Comma"), TEXT(","));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Period"), TEXT("."));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Semicolon"), TEXT(";"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Slash"), TEXT("/"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Comma"), TEXT(","));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Period"), TEXT("."));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Semicolon"), TEXT(";"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Slash"), TEXT("/"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Hyphen"), TEXT("-"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Ampersand"), TEXT("&"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Apostrophe"), TEXT("'"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Asterisk"), TEXT("*"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Backslash"), TEXT("\\"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Caps Lock"), TEXT("Caps Lock"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Backspace"), TEXT("Backspace"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Caret"), TEXT("^"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Colon"), TEXT(":"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Dollar"), TEXT("$"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Down"), TEXT("Down"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("End"), TEXT("End"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Enter"), TEXT("Enter"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Equals"), TEXT("="));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Escape"), TEXT("Escape"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Exclamation"), TEXT("!"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Home"), TEXT("Home"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Insert"), TEXT("Insert"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Left"), TEXT("Left"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Left Alt"), TEXT("Left Alt"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Left Bracket"), TEXT("["));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Left Cmd"), TEXT("Left Cmd"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Left Ctrl"), TEXT("Left Ctrl"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Left Parantheses"), TEXT("("));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Left Shift"), TEXT("Left Shift"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Num -"), TEXT("Num -"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Num *"), TEXT("Num *"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Num ."), TEXT("Num ."));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Num /"), TEXT("Num /"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Num +"), TEXT("Num +"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Num 0"), TEXT("Num 0"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Num 1"), TEXT("Num 1"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Num 2"), TEXT("Num 2"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Num 3"), TEXT("Num 3"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Num 4"), TEXT("Num 4"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Num 5"), TEXT("Num 5"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Num 6"), TEXT("Num 6"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Num 7"), TEXT("Num 7"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Num 8"), TEXT("Num 8"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Num 9"), TEXT("Num 9"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Num Lock"), TEXT("Num Lock"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Page Down"), TEXT("Page Down"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Page Up"), TEXT("Page Up"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Pause"), TEXT("Pause"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Quote"), TEXT("Quote"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Right"), TEXT("Right"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Right Alt"), TEXT("Right Alt"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Right Bracket"), TEXT("]"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Right Cmd"), TEXT("Right Cmd"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Right Ctrl"), TEXT("Right Ctrl"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Right Parantheses"), TEXT(")"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Right Shift"), TEXT("Right Shift"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Scroll Lock"), TEXT("Scroll Lock"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Tab"), TEXT("Tab"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Underscore"), TEXT("_"));
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Up"), TEXT("Up"));
+}
+
 void AKeyballPlayerController::ClientKeyPressed(FKey Key)
 {
     // Forward to server
@@ -23,9 +102,18 @@ void AKeyballPlayerController::ServerHandleKeyPress_Implementation(const FKey& P
     HandleKeyPress(PressedKey);
 }
 
+bool AKeyballPlayerController::ServerHandleKeyPress_Validate(const FKey& PressedKey)
+{
+    return true;
+}
+
 void AKeyballPlayerController::HandleKeyPress(const FKey& PressedKey)
 {
     // here gotta add the new pressed key to the pressed keys array, and check and set the keyball combo
+    FString KeyString = PressedKey.ToString();
+    UE_LOG(LogTemp, Log, TEXT("Key pressed: %s"), *KeyString);
+    //on-screen log
+    GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, FString::Printf(TEXT("Key pressed: %s"), *KeyString));
 
     if (!CanPlayerPressMoreKeys())
     {
@@ -34,8 +122,15 @@ void AKeyballPlayerController::HandleKeyPress(const FKey& PressedKey)
 
     UE_LOG(LogTemp, Log, TEXT("Can press more keys"));
 
+    // Get natural glyph if it exists in the map
+    FString* NaturalGlyph = UnrealKeyLabelToNaturalGlyphMap.Find(KeyString);
+    if (NaturalGlyph)
+    {
+        KeyString = *NaturalGlyph;
+    }
+
     // add the new pressed key to the pressed keys array
-    CurrentlyPressedKeys.AddUnique(PressedKey.ToString());
+    CurrentlyPressedKeys.AddUnique(KeyString);
     UE_LOG(LogTemp, Log, TEXT("Currently pressed keys: %s"), *FString::Join(CurrentlyPressedKeys, TEXT(", ")));
     UE_LOG(LogTemp, Log, TEXT("Checking key owner"));
     if (!CheckKeyOwner(PressedKey)) {
@@ -180,9 +275,6 @@ int32 AKeyballPlayerController::GetTeamNumber() const
     return -1;
 }
 
-
-
-
 void AKeyballPlayerController::ClientKeyReleased(FKey Key)
 {
     if (HasAuthority())
@@ -198,6 +290,11 @@ void AKeyballPlayerController::ClientKeyReleased(FKey Key)
 void AKeyballPlayerController::ServerHandleKeyRelease_Implementation(const FKey& ReleasedKey)
 {
     HandleKeyRelease(ReleasedKey);
+}
+
+bool AKeyballPlayerController::ServerHandleKeyRelease_Validate(const FKey& ReleasedKey)
+{
+    return true;
 }
 
 void AKeyballPlayerController::HandleKeyRelease(const FKey& ReleasedKey)

@@ -11,6 +11,8 @@ class KEYBALL_AAA_API AKeyballPlayerController : public APlayerController
     GENERATED_BODY()
 
 public:
+    AKeyballPlayerController();
+
     // Called from Blueprint when a key is pressed
     UFUNCTION(BlueprintCallable, Category="KeyPress")
     void ClientKeyPressed(FKey Key);
@@ -31,6 +33,9 @@ public:
 	TArray<FString> unrealKeyLabels;
 
 	UPROPERTY(BlueprintReadWrite, Category="KeyPress")
+	TMap<FString, FString> UnrealKeyLabelToNaturalGlyphMap;
+
+	UPROPERTY(BlueprintReadWrite, Category="KeyPress")
 	int32 team1ActiveKeyCount;
 
 	UPROPERTY(BlueprintReadWrite, Category="KeyPress")
@@ -46,12 +51,15 @@ public:
     UFUNCTION(Server, Reliable)
     void ServerHandleKeyPress(const FKey& PressedKey);
 
+    bool ServerHandleKeyPress_Validate(const FKey& PressedKey);
 
     UFUNCTION(BlueprintCallable, Category="KeyPress")
     void ClientKeyReleased(FKey Key);
 
     UFUNCTION(Server, Reliable)
     void ServerHandleKeyRelease(const FKey& ReleasedKey);
+
+    bool ServerHandleKeyRelease_Validate(const FKey& ReleasedKey);
 
     void HandleKeyRelease(const FKey& ReleasedKey);
 
