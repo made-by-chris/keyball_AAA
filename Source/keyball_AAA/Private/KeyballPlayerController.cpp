@@ -8,6 +8,7 @@
 AKeyballPlayerController::AKeyballPlayerController()
 {
     // Initialize the key label to natural glyph map
+    UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("UnknownCharCode_246"), TEXT("ö"));
     UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("One"), TEXT("1"));
     UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Two"), TEXT("2"));
     UnrealKeyLabelToNaturalGlyphMap.Add(TEXT("Three"), TEXT("3"));
@@ -107,9 +108,7 @@ void AKeyballPlayerController::HandleKeyPress(const FKey& PressedKey)
 {
     // here gotta add the new pressed key to the pressed keys array, and check and set the keyball combo
     FString KeyString = PressedKey.ToString();
-    UE_LOG(LogTemp, Log, TEXT("Key pressed: %s"), *KeyString);
-    return;
-        // Get natural glyph if it exists in the map
+    // Get natural glyph if it exists in the map
     FString* NaturalGlyph = UnrealKeyLabelToNaturalGlyphMap.Find(KeyString);
     if (NaturalGlyph)
     {
