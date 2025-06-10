@@ -18,6 +18,41 @@ FKeyballComboResult UKeyballComboDetector::DetectKeyballCombo(
     if (SelectedLayout.Num() != 40)
         return Result;
 
+    // Stairs Detection (3 keys in a contiguous path)
+    if (PressedKeys.Num() >= 3)
+    {
+        FString K1 = PressedKeys[PressedKeys.Num() - 3];
+        FString K2 = PressedKeys[PressedKeys.Num() - 2];
+        FString K3 = PressedKeys.Last();
+
+        int32 I1 = FindKeyIndex(SelectedLayout, K1);
+        int32 I2 = FindKeyIndex(SelectedLayout, K2);
+        int32 I3 = FindKeyIndex(SelectedLayout, K3);
+
+        if (I1 != INDEX_NONE && I2 != INDEX_NONE && I3 != INDEX_NONE)
+        {
+            int32 Row1 = I1 / 10, Col1 = I1 % 10;
+            int32 Row2 = I2 / 10, Col2 = I2 % 10;
+            int32 Row3 = I3 / 10, Col3 = I3 % 10;
+
+            // Calculate differences between consecutive positions
+            int32 DR1 = Row2 - Row1, DC1 = Col2 - Col1;
+            int32 DR2 = Row3 - Row2, DC2 = Col3 - Col2;
+
+            // Check if all three keys are in a straight line (including diagonals)
+            // They must move in the same direction between each step
+            if (DR1 == DR2 && DC1 == DC2 && (FMath::Abs(DR1) <= 1 && FMath::Abs(DC1) <= 1))
+            {
+                Result.MoveType = EKeyballMoveType::Stairs;
+                Result.Keys = { K1, K2, K3 };
+                Result.KeysIndex = { I1, I2, I3 };
+                Result.Direction = GetDirection(I1, I3);
+                Result.bOverBorder = IsOverBorder(I1, I2) || IsOverBorder(I2, I3);
+                if (!Result.bOverBorder) return Result;
+            }
+        }
+    }
+
     // Whack Combo Detection (2-key directional)
     if (PressedKeys.Num() >= 2)
     {
@@ -49,38 +84,6 @@ FKeyballComboResult UKeyballComboDetector::DetectKeyballCombo(
                 Result.KeysIndex = { FirstIndex, SecondIndex };
                 Result.Direction = GetDirection(FirstIndex, SecondIndex);
                 Result.bOverBorder = IsOverBorder(FirstIndex, SecondIndex);
-                if (!Result.bOverBorder) return Result;
-            }
-        }
-    }
-
-    // Stairs Detection (3 keys in a contiguous path)
-    if (PressedKeys.Num() >= 3)
-    {
-        FString K1 = PressedKeys[PressedKeys.Num() - 3];
-        FString K2 = PressedKeys[PressedKeys.Num() - 2];
-        FString K3 = PressedKeys.Last();
-
-        int32 I1 = FindKeyIndex(SelectedLayout, K1);
-        int32 I2 = FindKeyIndex(SelectedLayout, K2);
-        int32 I3 = FindKeyIndex(SelectedLayout, K3);
-
-        if (I1 != INDEX_NONE && I2 != INDEX_NONE && I3 != INDEX_NONE)
-        {
-            int32 Row1 = I1 / 10, Col1 = I1 % 10;
-            int32 Row2 = I2 / 10, Col2 = I2 % 10;
-            int32 Row3 = I3 / 10, Col3 = I3 % 10;
-
-            int32 DR1 = Row2 - Row1, DC1 = Col2 - Col1;
-            int32 DR2 = Row3 - Row2, DC2 = Col3 - Col2;
-
-            if (DR1 == DR2 && DC1 == DC2) // Same direction
-            {
-                Result.MoveType = EKeyballMoveType::Stairs;
-                Result.Keys = { K1, K2, K3 };
-                Result.KeysIndex = { I1, I2, I3 };
-                Result.Direction = GetDirection(I1, I3);
-                Result.bOverBorder = IsOverBorder(I1, I2) || IsOverBorder(I2, I3);
                 if (!Result.bOverBorder) return Result;
             }
         }
