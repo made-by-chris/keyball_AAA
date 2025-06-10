@@ -105,9 +105,10 @@ bool AKeyballPlayerController::ServerHandleKeyPress_Validate(const FKey& Pressed
 
 void AKeyballPlayerController::HandleKeyPress(const FKey& PressedKey)
 {
-    UE_LOG(LogTemp, Log, TEXT("Key pressed: %s"), *PressedKey.ToString());
     // here gotta add the new pressed key to the pressed keys array, and check and set the keyball combo
     FString KeyString = PressedKey.ToString();
+    UE_LOG(LogTemp, Log, TEXT("Key pressed: %s"), *KeyString);
+    return;
         // Get natural glyph if it exists in the map
     FString* NaturalGlyph = UnrealKeyLabelToNaturalGlyphMap.Find(KeyString);
     if (NaturalGlyph)
@@ -123,13 +124,11 @@ void AKeyballPlayerController::HandleKeyPress(const FKey& PressedKey)
     //     return;
     // }
 
-
-
     // add the new pressed key to the pressed keys array
     CurrentlyPressedKeys.AddUnique(KeyString);
-    if (!CheckKeyOwner(PressedKey)) {
-        return;
-    }
+    // if (!CheckKeyOwner(PressedKey)) {
+    //     return;
+    // }
     bool bIsValid = false;
     bool bIsSpecial = false;
     CheckIsValidKey(PressedKey, bIsValid, bIsSpecial);
@@ -138,20 +137,20 @@ void AKeyballPlayerController::HandleKeyPress(const FKey& PressedKey)
     }
     // Handle special keys ("left shift", "right shift", "delete")
     // set leftShiftActive (tab is also left), or rightShiftActive (delete is also "rightShift")
-    if (PressedKey == EKeys::LeftShift || PressedKey == EKeys::Tab)
-    {
-        leftShiftActive = true;
-        return;
-    }
-    else if (PressedKey == EKeys::RightShift || PressedKey == EKeys::Delete)
-    {
-        rightShiftActive = true;
-        return;
-    }
+    // if (PressedKey == EKeys::LeftShift || PressedKey == EKeys::Tab)
+    // {
+    //     leftShiftActive = true;
+    //     return;
+    // }
+    // else if (PressedKey == EKeys::RightShift || PressedKey == EKeys::Delete)
+    // {
+    //     rightShiftActive = true;
+    //     return;
+    // }
 
     // check and set the keyball combo
-    FKeyballComboResult ComboResult = UKeyballComboDetector::DetectKeyballCombo(selectedLayout, CurrentlyPressedKeys);
-    KeyballCombo = ComboResult;
+    // FKeyballComboResult ComboResult = UKeyballComboDetector::DetectKeyballCombo(selectedLayout, CurrentlyPressedKeys);
+    // KeyballCombo = ComboResult;
 
     // Iterate over all BP_Key actors in the world
     for (TActorIterator<AActor> It(GetWorld()); It; ++It)
