@@ -1,5 +1,6 @@
 // KeyballComboDetector.cpp
 #include "KeyballComboDetector.h"
+#include "Algo/Reverse.h"   // for Algo::Reverse
 
 FKeyballComboResult UKeyballComboDetector::DetectKeyballCombo(
     const TArray<FString>& SelectedLayout,
@@ -89,84 +90,124 @@ FKeyballComboResult UKeyballComboDetector::DetectKeyballCombo(
         }
     }
 
-    // Axis-based moves: Wave, Ripple, Tilt (check each axis)
+
+    // …
+
+    // build forward axes
     TArray<TArray<int32>> Axes;
-    for (int32 Row = 0; Row < 4; ++Row) // Rows
-    {
-        TArray<int32> Axis;
+    for (int32 Row = 0; Row < 4; ++Row) {
+        TArray<int32> RowAxis;
         for (int32 Col = 0; Col < 10; ++Col)
-            Axis.Add(Row * 10 + Col);
-        Axes.Add(Axis);
+            RowAxis.Add(Row * 10 + Col);
+        Axes.Add(RowAxis);
     }
-    for (int32 Col = 0; Col < 10; ++Col) // Columns
-    {
-        TArray<int32> Axis;
+    for (int32 Col = 0; Col < 10; ++Col) {
+        TArray<int32> ColAxis;
         for (int32 Row = 0; Row < 4; ++Row)
-            Axis.Add(Row * 10 + Col);
-        Axes.Add(Axis);
+            ColAxis.Add(Row * 10 + Col);
+        Axes.Add(ColAxis);
+    }
+
+    // duplicate each axis reversed, so we catch both directions
+    TArray<TArray<int32>> AllAxes = Axes;
+    for (auto& Axis : Axes) {
+        TArray<int32> Rev = Axis;
+        Algo::Reverse(Rev);
+        AllAxes.Add(MoveTemp(Rev));
     }
 
     TSet<FString> PressedSet(PressedKeys);
 
-    for (const TArray<int32>& Axis : Axes)
-    {
-        // Wave: key - skip - skip - key - key
-        if (Axis.Num() >= 5)
-        {
-            for (int32 i = 0; i <= Axis.Num() - 5; ++i)
-            {
-                int32 A = Axis[i], D = Axis[i + 3], E = Axis[i + 4];
-                FString KA = SelectedLayout[A], KD = SelectedLayout[D], KE = SelectedLayout[E];
-                if (PressedSet.Contains(KA) && PressedSet.Contains(KD) && PressedSet.Contains(KE))
-                {
-                    Result.MoveType = EKeyballMoveType::Wave;
-                    Result.Keys = { KA, KD, KE };
-                    Result.KeysIndex = { A, D, E };
-                    Result.Direction = GetDirection(A, E);
-                    Result.bOverBorder = IsOverBorder(A, D) || IsOverBorder(D, E);
+    for (auto& Axis : AllAxes) {
+        const int32 N = Axis.Num();
+
+        // —— HORIZONTAL spans are N >= 5 ——  
+        if (N >= 5) {
+            // Wave: KEY-SKIP-SKIP-KEY-KEY  → offsets [0, +3, +4]
+            for (int i = 0; i <= N - 5; ++i) {
+                int A = Axis[i], D = Axis[i+3], E = Axis[i+4];
+                auto KA = SelectedLayout[A], KD = SelectedLayout[D], KE = SelectedLayout[E];
+                if (PressedSet.Contains(KA) && PressedSet.Contains(KD) && PressedSet.Contains(KE)) {
+                    Result.MoveType    = EKeyballMoveType::Wave;
+                    Result.Keys        = {KA,KD,KE};
+                    Result.KeysIndex   = {A,D,E};
+                    Result.Direction   = GetDirection(A,E);
+                    Result.bOverBorder = IsOverBorder(A,D) || IsOverBorder(D,E);
+                    if (!Result.bOverBorder) return Result;
+                }
+            }
+            // Ripple: KEY-KEY-SKIP-SKIP-KEY  → offsets [0, +1, +4]
+            for (int i = 0; i <= N - 5; ++i) {
+                int A = Axis[i], B = Axis[i+1], E = Axis[i+4];
+                auto KA = SelectedLayout[A], KB = SelectedLayout[B], KE = SelectedLayout[E];
+                if (PressedSet.Contains(KA) && PressedSet.Contains(KB) && PressedSet.Contains(KE)) {
+                    Result.MoveType    = EKeyballMoveType::Ripple;
+                    Result.Keys        = {KA,KB,KE};
+                    Result.KeysIndex   = {A,B,E};
+                    Result.Direction   = GetDirection(A,E);
+                    Result.bOverBorder = IsOverBorder(A,B) || IsOverBorder(B,E);
+                    if (!Result.bOverBorder) return Result;
+                }
+            }
+            // Tilt: endpoints only → offsets [0, +4]
+            for (int i = 0; i <= N - 5; ++i) {
+                int A = Axis[i], E = Axis[i+4];
+                auto KA = SelectedLayout[A], KE = SelectedLayout[E];
+                if (PressedSet.Contains(KA) && PressedSet.Contains(KE)) {
+                    Result.MoveType    = EKeyballMoveType::Tilt;
+                    Result.Keys        = {KA,KE};
+                    Result.KeysIndex   = {A,E};
+                    Result.Direction   = GetDirection(A,E);
+                    Result.bOverBorder = IsOverBorder(A,E);
                     if (!Result.bOverBorder) return Result;
                 }
             }
         }
 
-        // Ripple: key - key - skip - key (or) key - key - skip - skip - key
-        if (Axis.Num() >= 4)
-        {
-            for (int32 i = 0; i <= Axis.Num() - 4; ++i)
-            {
-                int32 A = Axis[i], B = Axis[i + 1], D = Axis[i + 3];
-                FString KA = SelectedLayout[A], KB = SelectedLayout[B], KD = SelectedLayout[D];
-                if (PressedSet.Contains(KA) && PressedSet.Contains(KB) && PressedSet.Contains(KD))
-                {
-                    Result.MoveType = EKeyballMoveType::Ripple;
-                    Result.Keys = { KA, KB, KD };
-                    Result.KeysIndex = { A, B, D };
-                    Result.Direction = GetDirection(A, D);
-                    Result.bOverBorder = IsOverBorder(A, B) || IsOverBorder(B, D);
+        // —— VERTICAL spans are N == 4 ——  
+        if (N == 4) {
+            // Wave: KEY-SKIP-KEY-KEY → offsets [0, +2, +3]
+            for (int i = 0; i <= N - 4; ++i) {
+                int A = Axis[i], C = Axis[i+2], D = Axis[i+3];
+                auto KA = SelectedLayout[A], KC = SelectedLayout[C], KD = SelectedLayout[D];
+                if (PressedSet.Contains(KA) && PressedSet.Contains(KC) && PressedSet.Contains(KD)) {
+                    Result.MoveType    = EKeyballMoveType::Wave;
+                    Result.Keys        = {KA,KC,KD};
+                    Result.KeysIndex   = {A,C,D};
+                    Result.Direction   = GetDirection(A,D);
+                    Result.bOverBorder = IsOverBorder(A,C) || IsOverBorder(C,D);
                     if (!Result.bOverBorder) return Result;
                 }
             }
-        }
-
-        // Tilt: key - key - skip - key
-        if (Axis.Num() >= 4)
-        {
-            for (int32 i = 0; i <= Axis.Num() - 4; ++i)
-            {
-                int32 A = Axis[i], B = Axis[i + 1], D = Axis[i + 3];
-                FString KA = SelectedLayout[A], KB = SelectedLayout[B], KD = SelectedLayout[D];
-                if (PressedSet.Contains(KA) && PressedSet.Contains(KB) && PressedSet.Contains(KD))
-                {
-                    Result.MoveType = EKeyballMoveType::Tilt;
-                    Result.Keys = { KA, KB, KD };
-                    Result.KeysIndex = { A, B, D };
-                    Result.Direction = GetDirection(A, D);
-                    Result.bOverBorder = IsOverBorder(A, B) || IsOverBorder(B, D);
+            // Ripple: KEY-KEY-SKIP-KEY → offsets [0, +1, +3]
+            for (int i = 0; i <= N - 4; ++i) {
+                int A = Axis[i], B = Axis[i+1], D = Axis[i+3];
+                auto KA = SelectedLayout[A], KB = SelectedLayout[B], KD = SelectedLayout[D];
+                if (PressedSet.Contains(KA) && PressedSet.Contains(KB) && PressedSet.Contains(KD)) {
+                    Result.MoveType    = EKeyballMoveType::Ripple;
+                    Result.Keys        = {KA,KB,KD};
+                    Result.KeysIndex   = {A,B,D};
+                    Result.Direction   = GetDirection(A,D);
+                    Result.bOverBorder = IsOverBorder(A,B) || IsOverBorder(B,D);
+                    if (!Result.bOverBorder) return Result;
+                }
+            }
+            // Tilt: endpoints only → offsets [0, +3]
+            for (int i = 0; i <= N - 4; ++i) {
+                int A = Axis[i], D = Axis[i+3];
+                auto KA = SelectedLayout[A], KD = SelectedLayout[D];
+                if (PressedSet.Contains(KA) && PressedSet.Contains(KD)) {
+                    Result.MoveType    = EKeyballMoveType::Tilt;
+                    Result.Keys        = {KA,KD};
+                    Result.KeysIndex   = {A,D};
+                    Result.Direction   = GetDirection(A,D);
+                    Result.bOverBorder = IsOverBorder(A,D);
                     if (!Result.bOverBorder) return Result;
                 }
             }
         }
     }
+
 
     // Diagonal/skew combo detection (corner-to-corner)
     TArray<TArray<int32>> SkewCombos = {
