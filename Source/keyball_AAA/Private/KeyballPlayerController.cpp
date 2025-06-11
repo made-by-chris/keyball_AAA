@@ -4,6 +4,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "KeyballComboDetector.h"
 #include "KeyballPlayerState.h"
+#include "KeyballKeyboard.h"
+#include "Engine/Engine.h"
 
 AKeyballPlayerController::AKeyballPlayerController()
 {
@@ -83,200 +85,26 @@ AKeyballPlayerController::AKeyballPlayerController()
 
 void AKeyballPlayerController::ClientKeyPressed(FKey Key)
 {
-    // Forward to server
     if (HasAuthority())
-    {
         ServerHandleKeyPress(Key);
-    }
     else
-    {
-        ServerHandleKeyPress(Key); // will trigger RPC to server
-    }
-}
-
-void AKeyballPlayerController::ServerHandleKeyPress_Implementation(const FKey& PressedKey)
-{
-    HandleKeyPress(PressedKey);
-}
-
-bool AKeyballPlayerController::ServerHandleKeyPress_Validate(const FKey& PressedKey)
-{
-    return true;
-}
-
-void AKeyballPlayerController::HandleKeyPress(const FKey& PressedKey)
-{
-    // here gotta add the new pressed key to the pressed keys array, and check and set the keyball combo
-    FString KeyString = PressedKey.ToString();
-    // Get natural glyph if it exists in the map
-    FString* NaturalGlyph = UnrealKeyLabelToNaturalGlyphMap.Find(KeyString);
-    if (NaturalGlyph)
-    {
-        KeyString = *NaturalGlyph;
-    }
-
-    //on-screen log
-    // GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, FString::Printf(TEXT("Key pressed: %s"), *KeyString));
-
-    // if (!CanPlayerPressMoreKeys())
-    // {
-    //     return;
-    // }
-
-    // add the new pressed key to the pressed keys array
-    CurrentlyPressedKeys.AddUnique(KeyString);
-    // if (!CheckKeyOwner(PressedKey)) {
-    //     return;
-    // }
-    bool bIsValid = false;
-    bool bIsSpecial = false;
-    CheckIsValidKey(PressedKey, bIsValid, bIsSpecial);
-    if (bIsSpecial)
-    {
-    }
-    // Handle special keys ("left shift", "right shift", "delete")
-    // set leftShiftActive (tab is also left), or rightShiftActive (delete is also "rightShift")
-    // if (PressedKey == EKeys::LeftShift || PressedKey == EKeys::Tab)
-    // {
-    //     leftShiftActive = true;
-    //     return;
-    // }
-    // else if (PressedKey == EKeys::RightShift || PressedKey == EKeys::Delete)
-    // {
-    //     rightShiftActive = true;
-    //     return;
-    // }
-
-    // check and set the keyball combo
-    FKeyballComboResult ComboResult = UKeyballComboDetector::DetectKeyballCombo(selectedLayout, CurrentlyPressedKeys);
-    KeyballCombo = ComboResult;
-    // if (KeyballCombo.MoveType != EKeyballMoveType::None) {
-        // Print the move type on screen
-        FString MoveTypeStr = UEnum::GetValueAsString(KeyballCombo.MoveType);
-        FString PressedKeysStr = FString::Join(CurrentlyPressedKeys, TEXT(", "));
-        GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, FString::Printf(TEXT("Keyball combo detected: %s | Pressed keys: [%s]"), *MoveTypeStr, *PressedKeysStr));
-        // and in the regular logs
-        UE_LOG(LogTemp, Log, TEXT("Keyball combo detected: %s | Pressed keys: [%s]"), *MoveTypeStr, *PressedKeysStr);
-    // }
-    // Iterate over all BP_Key actors in the world
-    for (TActorIterator<AActor> It(GetWorld()); It; ++It)
-    {
-        AActor* Actor = *It;
-        
-        // Ensure it's a BP_Key actor
-        if (Actor->GetClass()->GetName().Contains("BP_Key"))
-        {
-            // Try to get the "Symbol" property
-            FString Symbol;
-            FName SymbolName(TEXT("Symbol"));
-            FProperty* SymbolProp = Actor->GetClass()->FindPropertyByName(SymbolName);
-            
-            if (FStrProperty* StrProp = CastField<FStrProperty>(SymbolProp))
-            {
-                Symbol = StrProp->GetPropertyValue_InContainer(Actor);
-
-                // Compare with pressed keys
-                if (CurrentlyPressedKeys.Contains(Symbol))
-                {
-                    // Call "Set Key Active(true)" on the actor
-                    static FName FuncName(TEXT("Set Key Active"));
-                    UFunction* Func = Actor->FindFunction(FuncName);
-
-                    if (Func)
-                    {
-                        struct FSetKeyActiveParams
-                        {
-                            bool Active;
-                            bool shiftIsActive;
-                        };
-
-                        FSetKeyActiveParams Params;
-                        Params.Active = true;
-                        Params.shiftIsActive = false;
-                        Actor->ProcessEvent(Func, &Params);
-                    }
-                    else
-                    {
-                    }
-                }
-            }
-        }
-    }
-
-    
-}
-
-// === Helper Logic ===
-
-bool AKeyballPlayerController::CheckIsValidKey(const FKey& Key, bool& bIsValid, bool& bIsSpecial) const
-{
-    FString KeyString = Key.ToString();
-    bIsSpecial = specialMoveKeys.Contains(KeyString);
-
-    const bool bInLayout = selectedLayout.Contains(KeyString);
-    const bool bInLabels = unrealKeyLabels.Contains(KeyString);
-
-    bIsValid = bIsSpecial || bInLayout || bInLabels;
-    return bIsValid;
-}
-
-bool AKeyballPlayerController::CheckKeyOwner(const FKey& Key)
-{
-    return true; // fix this later on when we get into sessions logic
-    // FString KeyString = Key.ToString();
-    // int32 KeyIndex = selectedLayout.IndexOfByKey(KeyString);
-    // if (KeyIndex == INDEX_NONE) return false;
-
-    // const int32 Team = GetTeamNumber();
-    // if (Team == 0) // Left side
-    //     return (KeyIndex % 10 <= 4);
-
-    // if (Team == 1) // Right side
-    //     return (KeyIndex % 10 >= 5);
-
-    // return false;
-}
-
-bool AKeyballPlayerController::CanPlayerPressMoreKeys()
-{
-    return true;
-    // return CurrentlyPressedKeys.Num() < MaxKeysAllowed;
-}
-
-TArray<AActor*> AKeyballPlayerController::KeyStringToActors(const FKey& Key)
-{
-    TArray<AActor*> OutActors;
-    FString KeyString = Key.ToString();
-    for (TActorIterator<AActor> It(GetWorld()); It; ++It)
-    {
-        if (It->GetName().Contains(KeyString))
-        {
-            OutActors.Add(*It);
-        }
-    }
-    return OutActors;
-}
-
-int32 AKeyballPlayerController::GetTeamNumber() const
-{
-    if (const AKeyballPlayerState* PS = Cast<AKeyballPlayerState>(PlayerState))
-    {
-        return PS->GetTeamNumber();
-    }
-
-    return -1;
+        ServerHandleKeyPress(Key);
 }
 
 void AKeyballPlayerController::ClientKeyReleased(FKey Key)
 {
     if (HasAuthority())
-    {
         ServerHandleKeyRelease(Key);
-    }
     else
-    {
-        ServerHandleKeyRelease(Key); // trigger RPC
-    }
+        ServerHandleKeyRelease(Key);
+}
+
+bool AKeyballPlayerController::ServerHandleKeyPress_Validate(const FKey& PressedKey) { return true; }
+bool AKeyballPlayerController::ServerHandleKeyRelease_Validate(const FKey& ReleasedKey) { return true; }
+
+void AKeyballPlayerController::ServerHandleKeyPress_Implementation(const FKey& PressedKey)
+{
+    HandleKeyPress(PressedKey);
 }
 
 void AKeyballPlayerController::ServerHandleKeyRelease_Implementation(const FKey& ReleasedKey)
@@ -284,76 +112,83 @@ void AKeyballPlayerController::ServerHandleKeyRelease_Implementation(const FKey&
     HandleKeyRelease(ReleasedKey);
 }
 
-bool AKeyballPlayerController::ServerHandleKeyRelease_Validate(const FKey& ReleasedKey)
+void AKeyballPlayerController::HandleKeyPress(const FKey& PressedKey)
 {
-    return true;
+    FString KeyString = PressedKey.ToString();
+    if (FString* Glyph = UnrealKeyLabelToNaturalGlyphMap.Find(KeyString))
+        KeyString = *Glyph;
+
+    CurrentlyPressedKeys.AddUnique(KeyString);
+
+    bool bIsValid = false, bIsSpecial = false;
+    CheckIsValidKey(PressedKey, bIsValid, bIsSpecial);
+
+    if (!bIsValid) return;
+
+    // Detect combo
+    FKeyballComboResult ComboResult = UKeyballComboDetector::DetectKeyballCombo(selectedLayout, CurrentlyPressedKeys);
+    KeyballCombo = ComboResult;
+
+    // Debug log
+    if (KeyballCombo.MoveType != EKeyballMoveType::None)
+    {
+        FString MoveTypeStr = UEnum::GetValueAsString(KeyballCombo.MoveType);
+        FString PressedKeysStr = FString::Join(CurrentlyPressedKeys, TEXT(", "));
+        GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green,
+            FString::Printf(TEXT("Combo detected: %s | Keys: [%s]"), *MoveTypeStr, *PressedKeysStr));
+    }
+
+    // === NEW: Pass combo to keyboard ===
+   if (Keyboard)
+    {
+        Keyboard->OnKeyPressed(KeyString, CurrentlyPressedKeys, KeyballCombo);
+    }
+
 }
 
 void AKeyballPlayerController::HandleKeyRelease(const FKey& ReleasedKey)
 {
     FString KeyString = ReleasedKey.ToString();
+    if (FString* Glyph = UnrealKeyLabelToNaturalGlyphMap.Find(KeyString))
+        KeyString = *Glyph;
 
-    // Get natural glyph if it exists in the map
-    FString* NaturalGlyph = UnrealKeyLabelToNaturalGlyphMap.Find(KeyString);
-    if (NaturalGlyph)
-    {
-        KeyString = *NaturalGlyph;
-    }
-
-    // Remove from pressed keys
     CurrentlyPressedKeys.Remove(KeyString);
 
-    // Update keyball combo
+    // Re-run combo check
     FKeyballComboResult ComboResult = UKeyballComboDetector::DetectKeyballCombo(selectedLayout, CurrentlyPressedKeys);
     KeyballCombo = ComboResult;
 
-
-    // Shift toggles
     if (ReleasedKey == EKeys::LeftShift || ReleasedKey == EKeys::Tab)
-    {
         leftShiftActive = false;
-    }
     else if (ReleasedKey == EKeys::RightShift || ReleasedKey == EKeys::Delete)
-    {
         rightShiftActive = false;
-    }
 
-    // Find BP_Key actor and deactivate it
-    for (TActorIterator<AActor> It(GetWorld()); It; ++It)
+    // ✅ Notify keyboard to deactivate key and update state
+    if (Keyboard)
     {
-        AActor* Actor = *It;
-        if (Actor->GetClass()->GetName().Contains("BP_Key"))
-        {
-            FName SymbolName("Symbol");
-            FProperty* SymbolProp = Actor->GetClass()->FindPropertyByName(SymbolName);
-
-            if (FStrProperty* StrProp = CastField<FStrProperty>(SymbolProp))
-            {
-                FString Symbol = StrProp->GetPropertyValue_InContainer(Actor);
-
-                if (Symbol.ToLower() == KeyString.ToLower())
-                {
-                    static FName FuncName("Set Key Active");
-                    UFunction* Func = Actor->FindFunction(FuncName);
-
-                    if (Func)
-                    {
-                        struct FSetKeyActiveParams
-                        {
-                            bool Active;
-                            bool shiftIsActive;
-                        };
-
-                        FSetKeyActiveParams Params;
-                        Params.Active = false;
-                        Params.shiftIsActive = false;
-                        Actor->ProcessEvent(Func, &Params);
-                    }
-                    else
-                    {
-                    }
-                }
-            }
-        }
+        Keyboard->OnKeyReleased(KeyString, CurrentlyPressedKeys);
     }
+}
+
+
+bool AKeyballPlayerController::CheckIsValidKey(const FKey& Key, bool& bIsValid, bool& bIsSpecial) const
+{
+    FString KeyString = Key.ToString();
+    bIsSpecial = specialMoveKeys.Contains(KeyString);
+    bIsValid = bIsSpecial || selectedLayout.Contains(KeyString) || unrealKeyLabels.Contains(KeyString);
+    return bIsValid;
+}
+
+bool AKeyballPlayerController::CheckKeyOwner(const FKey& Key) { return true; }
+
+bool AKeyballPlayerController::CanPlayerPressMoreKeys()
+{
+    return CurrentlyPressedKeys.Num() < MaxKeysAllowed;
+}
+
+int32 AKeyballPlayerController::GetTeamNumber() const
+{
+    if (const auto* PS = Cast<AKeyballPlayerState>(PlayerState))
+        return PS->GetTeamNumber();
+    return -1;
 }
