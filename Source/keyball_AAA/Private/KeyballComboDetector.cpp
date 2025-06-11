@@ -54,45 +54,7 @@ FKeyballComboResult UKeyballComboDetector::DetectKeyballCombo(
         }
     }
 
-    // Whack Combo Detection (2-key directional)
-    if (PressedKeys.Num() >= 2)
-    {
-        FString FirstKey = PressedKeys[PressedKeys.Num() - 2];
-        FString SecondKey = PressedKeys.Last();
-
-        int32 FirstIndex = FindKeyIndex(SelectedLayout, FirstKey);
-        int32 SecondIndex = FindKeyIndex(SelectedLayout, SecondKey);
-
-        if (FirstIndex != INDEX_NONE && SecondIndex != INDEX_NONE)
-        {
-            // Check if keys are adjacent (including diagonals)
-            int32 FirstRow = FirstIndex / 10;
-            int32 FirstCol = FirstIndex % 10;
-            int32 SecondRow = SecondIndex / 10;
-            int32 SecondCol = SecondIndex % 10;
-
-            // Calculate row and column differences
-            int32 RowDiff = FMath::Abs(SecondRow - FirstRow);
-            int32 ColDiff = FMath::Abs(SecondCol - FirstCol);
-
-            // Keys are adjacent if they differ by at most 1 in both row and column
-            bool bIsAdjacent = (RowDiff <= 1 && ColDiff <= 1) && (RowDiff + ColDiff > 0);
-
-            if (bIsAdjacent)
-            {
-                Result.MoveType = EKeyballMoveType::Whack;
-                Result.Keys = { FirstKey, SecondKey };
-                Result.KeysIndex = { FirstIndex, SecondIndex };
-                Result.Direction = GetDirection(FirstIndex, SecondIndex);
-                Result.bOverBorder = IsOverBorder(FirstIndex, SecondIndex);
-                if (!Result.bOverBorder) return Result;
-            }
-        }
-    }
-
-
-    // …
-
+    // AXIS MOVES
     // build forward axes
     TArray<TArray<int32>> Axes;
     for (int32 Row = 0; Row < 4; ++Row) {
@@ -209,26 +171,79 @@ FKeyballComboResult UKeyballComboDetector::DetectKeyballCombo(
     }
 
 
-    // Diagonal/skew combo detection (corner-to-corner)
-    TArray<TArray<int32>> SkewCombos = {
-        {0, 11}, {11, 0}, // top-left to mid-right
-        {29, 38}, {38, 29}, // bottom-right to mid-left
-        {9, 18}, {18, 9}, // top-right to mid-left
-        {20, 31}, {31, 20} // bottom-left to mid-right
-    };
-    for (const TArray<int32>& Pair : SkewCombos)
+    // Diagonal combo detection (↘ ↖ ↙ ↗)
+    int32 DiagonalDeltas[] = {11, -11, 9, -9};
+
+    for (int32 i = 0; i < 40; ++i)
     {
-        FString KA = SelectedLayout[Pair[0]], KB = SelectedLayout[Pair[1]];
-        if (PressedSet.Contains(KA) && PressedSet.Contains(KB))
+        FString K0 = SelectedLayout[i];
+        if (!PressedSet.Contains(K0)) continue;
+
+        for (int d = 0; d < 4; ++d)
         {
-            Result.MoveType = EKeyballMoveType::Diagonal;
-            Result.Keys = { KA, KB };
-            Result.KeysIndex = { Pair[0], Pair[1] };
-            Result.Direction = GetDirection(Pair[0], Pair[1]);
-            Result.bOverBorder = IsOverBorder(Pair[0], Pair[1]);
-            if (!Result.bOverBorder) return Result;
+            int32 Delta = DiagonalDeltas[d];
+            int32 i1 = i + Delta;
+            int32 i2 = i + Delta * 2;
+
+            // Make sure all indices are valid
+            if (i1 < 0 || i1 >= 40 || i2 < 0 || i2 >= 40) continue;
+
+            FString K1 = SelectedLayout[i1];
+            FString K2 = SelectedLayout[i2];
+
+            if (PressedSet.Contains(K1) && PressedSet.Contains(K2))
+            {
+                // Check for border jumps (row wraparound)
+                if (IsOverBorder(i, i1) || IsOverBorder(i1, i2)) continue;
+
+                Result.MoveType    = EKeyballMoveType::Diagonal;
+                Result.Keys        = {K0, K1, K2};
+                Result.KeysIndex   = {i, i1, i2};
+                Result.Direction   = GetDirection(i, i2);  // You may adjust if you want to distinguish ↗ from ↘
+                Result.bOverBorder = false;
+                return Result;
+            }
         }
     }
+
+    
+    // Whack Combo Detection (2-key directional)
+    if (PressedKeys.Num() >= 2)
+    {
+        FString FirstKey = PressedKeys[PressedKeys.Num() - 2];
+        FString SecondKey = PressedKeys.Last();
+
+        int32 FirstIndex = FindKeyIndex(SelectedLayout, FirstKey);
+        int32 SecondIndex = FindKeyIndex(SelectedLayout, SecondKey);
+
+        if (FirstIndex != INDEX_NONE && SecondIndex != INDEX_NONE)
+        {
+            // Check if keys are adjacent (including diagonals)
+            int32 FirstRow = FirstIndex / 10;
+            int32 FirstCol = FirstIndex % 10;
+            int32 SecondRow = SecondIndex / 10;
+            int32 SecondCol = SecondIndex % 10;
+
+            // Calculate row and column differences
+            int32 RowDiff = FMath::Abs(SecondRow - FirstRow);
+            int32 ColDiff = FMath::Abs(SecondCol - FirstCol);
+
+            // Keys are adjacent if they differ by at most 1 in both row and column
+            bool bIsAdjacent = (RowDiff <= 1 && ColDiff <= 1) && (RowDiff + ColDiff > 0);
+
+            if (bIsAdjacent)
+            {
+                Result.MoveType = EKeyballMoveType::Whack;
+                Result.Keys = { FirstKey, SecondKey };
+                Result.KeysIndex = { FirstIndex, SecondIndex };
+                Result.Direction = GetDirection(FirstIndex, SecondIndex);
+                Result.bOverBorder = IsOverBorder(FirstIndex, SecondIndex);
+                if (!Result.bOverBorder) return Result;
+            }
+        }
+    }
+
+
 
     return FKeyballComboResult(); // Nothing matched
 }
