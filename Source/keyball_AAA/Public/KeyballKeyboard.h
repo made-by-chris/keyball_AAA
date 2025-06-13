@@ -1,4 +1,3 @@
-// KeyballKeyboard.h
 #pragma once
 
 #include "CoreMinimal.h"
@@ -6,34 +5,59 @@
 #include "KeyballComboDetector.h"
 #include "KeyballKeyboard.generated.h"
 
-class ABP_Key; // forward declaration
+class AKeyballKey;
+class UStaticMesh;
+
+USTRUCT(BlueprintType)
+struct FKeycapSpawnData
+{
+    GENERATED_BODY()
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere)
+    int32 Index;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere)
+    UStaticMesh* Mesh;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere)
+    FTransform Transform;
+};
 
 UCLASS()
-class AKeyballKeyboard : public AActor
+class KEYBALL_AAA_API AKeyballKeyboard : public AActor
 {
     GENERATED_BODY()
 
 public:
     AKeyballKeyboard();
 
-    virtual void Tick(float DeltaTime) override;
     virtual void BeginPlay() override;
+    virtual void Tick(float DeltaTime) override;
 
-    UFUNCTION()
-    void OnComboTriggered(const struct FKeyballCombo& Combo); // called by controller/multicast
+    void RegisterKey(int32 Index, AKeyballKey* Key);
 
-    // Optional: register keys from BP_Key instances
-    void RegisterKey(const FString& Symbol, ABP_Key* Key);
+    void OnKeyPressed(int32 PressedIndex, const TArray<int32>& AllPressedIndices, const FKeyballComboResult& Combo);
+    void OnKeyReleased(int32 ReleasedIndex, const TArray<int32>& RemainingPressedIndices);
+
+    UFUNCTION(BlueprintCallable)
+    void OnComboTriggered(const FKeyballComboResult& Combo);
 
 protected:
-    // Stores each key by its symbol (e.g. "Q", "W", "E", etc.)
-    UPROPERTY()
-    TMap<FString, ABP_Key*> KeyMap;
+    void GenerateFromBlueprintData();
 
-    // Per-key animation/transformation state
-    TMap<FString, FKeyTransformState> TransformStates;
+    // Maps index to spawned key actor
+    TMap<int32, AKeyballKey*> KeyMap;
 
-    // Handles all combo effects and animation logic
-    void ApplyComboEffect(const struct FKeyballCombo& Combo);
-    void UpdateKeyTransforms(float DeltaTime);
+    // Tracks which keys are active (e.g., visually pressed)
+    TMap<int32, AKeyballKey*> ActiveKeys;
+
+    // Layout input for keyboard generator function
+    UPROPERTY(EditAnywhere, Category = "Keyboard")
+    TArray<int32> KeyboardIDs;
+
+    // Actor class to spawn for keys
+    UPROPERTY(EditAnywhere, Category = "Keyboard")
+    TSubclassOf<AKeyballKey> KeyActorClass;
+
+    void ApplyComboEffect(const FKeyballComboResult& Combo);
 };

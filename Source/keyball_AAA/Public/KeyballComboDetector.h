@@ -17,8 +17,6 @@ enum class EKeyballMoveType : uint8
     Diagonal
 };
 
-
-
 UENUM(BlueprintType)
 enum class EKeyballDirection : uint8
 {
@@ -42,9 +40,6 @@ struct FKeyballComboResult
     EKeyballMoveType MoveType = EKeyballMoveType::None;
 
     UPROPERTY(BlueprintReadOnly)
-    TArray<FString> Keys;
-
-    UPROPERTY(BlueprintReadOnly)
     TArray<int32> KeysIndex;
 
     UPROPERTY(BlueprintReadOnly)
@@ -57,13 +52,11 @@ struct FKeyballComboResult
     {
         FString MoveTypeStr = UEnum::GetValueAsString(MoveType);
         FString DirectionStr = UEnum::GetValueAsString(Direction);
-        FString KeysStr = FString::Join(Keys, TEXT(", "));
         FString KeysIndexStr = FString::JoinBy(KeysIndex, TEXT(", "), [](int32 Index) { return FString::FromInt(Index); });
         
-        return FString::Printf(TEXT("MoveType=%s, Direction=%s, Keys=[%s], KeysIndex=[%s], bOverBorder=%s"),
+        return FString::Printf(TEXT("MoveType=%s, Direction=%s, KeysIndex=[%s], bOverBorder=%s"),
             *MoveTypeStr,
             *DirectionStr,
-            *KeysStr,
             *KeysIndexStr,
             bOverBorder ? TEXT("true") : TEXT("false"));
     }
@@ -76,13 +69,9 @@ class KEYBALL_AAA_API UKeyballComboDetector : public UObject
 
 public:
     UFUNCTION(BlueprintCallable, Category = "Keyball")
-    static FKeyballComboResult DetectKeyballCombo(
-        const TArray<FString>& SelectedLayout,
-        const TArray<FString>& PressedKeys
-    );
+    static FKeyballComboResult DetectKeyballCombo(const TArray<int32>& PressedIndices);
 
 private:
-    static int32 FindKeyIndex(const TArray<FString>& Layout, const FString& Key);
     static EKeyballDirection GetDirection(int32 From, int32 To);
     static bool IsSameSide(int32 IndexA, int32 IndexB);
     static bool IsOverBorder(int32 IndexA, int32 IndexB);

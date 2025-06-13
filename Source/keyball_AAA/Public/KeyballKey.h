@@ -1,3 +1,5 @@
+// KeyballKey.h
+
 #pragma once
 
 #include "CoreMinimal.h"
@@ -8,42 +10,40 @@ UCLASS()
 class KEYBALL_AAA_API AKeyballKey : public AActor
 {
     GENERATED_BODY()
-
+    
 public:
     AKeyballKey();
 
-    // === Public interface ===
-    UFUNCTION(BlueprintCallable)
+    virtual void Tick(float DeltaTime) override;
+
     void StartPressAnimation();
-
-    UFUNCTION(BlueprintCallable)
     void StartReleaseAnimation();
-
-    UFUNCTION(BlueprintCallable)
     void UpdateKeyAnimation(float DeltaTime);
 
-    UFUNCTION(BlueprintCallable)
-    void ResetKeyTransform();
-
-    UFUNCTION(BlueprintCallable)
-    FString GetSymbol() const;
-
-    // === Configurable ===
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Key")
-    FString Symbol;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Key")
-    float MaxZOffset = 30.f;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Key")
-    float AnimationSpeed = 5.0f;
-
 protected:
-    // === Internal animation state ===
-    FTransform BaseTransform;
-    FTransform GlobalTransform;
-    FTransform LocalTransform;
+    virtual void BeginPlay() override;
 
-    float TargetZOffset;
-    float CurrentZOffset;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    FString Symbol; // purely for UI/debug
+
+    // Animation
+    float AnimationSpeed = 5.0f;
+    float TargetZOffset = 0.f;
+    float CurrentZOffset = 0.f;
+    float MaxZOffset = 20.0f;
+
+    // Transform handling
+    struct FKeyTransformState
+    {
+        FTransform BaseTransform;
+        FTransform LocalTransform;
+        FTransform GlobalTransform;
+
+        FTransform GetWorldTransform() const
+        {
+            return BaseTransform * GlobalTransform * LocalTransform;
+        }
+    };
+
+    FKeyTransformState TransformState;
 };

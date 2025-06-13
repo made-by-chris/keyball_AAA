@@ -41,10 +41,8 @@ def main():
     # Step 0: Clean up (only if --rebuild is specified)
     if args.rebuild:
         clean_temp_folders()
-
-    # Step 1: Generate project files
-    generate_script = os.path.join(ENGINE_PATH, "Engine/Build/BatchFiles/Mac/GenerateProjectFiles.sh")
-    run(f'"{generate_script}" -project="{UPROJECT_PATH}" -game -engine')
+        generate_script = os.path.join(ENGINE_PATH, "Engine/Build/BatchFiles/Mac/GenerateProjectFiles.sh")
+        run(f'"{generate_script}" -project="{UPROJECT_PATH}" -game -engine')
 
     # Step 2: Build the project
     build_script = os.path.join(ENGINE_PATH, "Engine/Build/BatchFiles/Mac/Build.sh")

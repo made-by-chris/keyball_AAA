@@ -1,16 +1,27 @@
 #include "KeyballKey.h"
-#include "GameFramework/Actor.h"
-#include "Engine/World.h"
 
 AKeyballKey::AKeyballKey()
 {
-    PrimaryActorTick.bCanEverTick = false; // animation handled by keyboard tick
-    BaseTransform = GetActorTransform();
-    LocalTransform = FTransform::Identity;
-    GlobalTransform = FTransform::Identity;
-    AnimationSpeed = 5.0f; // adjust for smoothness
-    TargetZOffset = 0.f;
-    CurrentZOffset = 0.f;
+    PrimaryActorTick.bCanEverTick = true;
+    AnimationSpeed = 5.0f;
+    TargetZOffset = 0.0f;
+    CurrentZOffset = 0.0f;
+    MaxZOffset = 20.0f;
+}
+
+void AKeyballKey::BeginPlay()
+{
+    Super::BeginPlay();
+
+    TransformState.BaseTransform = GetActorTransform();
+    TransformState.LocalTransform = FTransform::Identity;
+    TransformState.GlobalTransform = FTransform::Identity;
+}
+
+void AKeyballKey::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
+    UpdateKeyAnimation(DeltaTime);
 }
 
 void AKeyballKey::StartPressAnimation()
@@ -25,25 +36,10 @@ void AKeyballKey::StartReleaseAnimation()
 
 void AKeyballKey::UpdateKeyAnimation(float DeltaTime)
 {
-    // Lerp toward target Z position
     CurrentZOffset = FMath::FInterpTo(CurrentZOffset, TargetZOffset, DeltaTime, AnimationSpeed);
 
     FVector LocalOffset(0, 0, CurrentZOffset);
-    LocalTransform.SetTranslation(LocalOffset);
+    TransformState.LocalTransform.SetTranslation(LocalOffset);
 
-    // Apply combined transform
-    SetActorTransform(BaseTransform * GlobalTransform * LocalTransform);
-}
-
-FString AKeyballKey::GetSymbol() const
-{
-    return Symbol;
-}
-
-void AKeyballKey::ResetKeyTransform()
-{
-    TargetZOffset = 0.f;
-    CurrentZOffset = 0.f;
-    LocalTransform = FTransform::Identity;
-    SetActorTransform(BaseTransform);
+    SetActorTransform(TransformState.GetWorldTransform());
 }

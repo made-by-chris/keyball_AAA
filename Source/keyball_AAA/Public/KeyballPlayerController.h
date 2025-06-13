@@ -2,10 +2,12 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
-#include "KeyballComboDetector.h"
+#include "InputCoreTypes.h"
 #include "KeyballPlayerController.generated.h"
 
 class AKeyballKeyboard;
+class UKeyballComboDetector;
+struct FKeyballComboResult;
 
 UCLASS()
 class KEYBALL_AAA_API AKeyballPlayerController : public APlayerController
@@ -15,58 +17,19 @@ class KEYBALL_AAA_API AKeyballPlayerController : public APlayerController
 public:
     AKeyballPlayerController();
 
-    UFUNCTION(BlueprintCallable, Category = "KeyPress")
-    void ClientKeyPressed(FKey Key);
-
-    UFUNCTION(BlueprintCallable, Category = "KeyPress")
-    void ClientKeyReleased(FKey Key);
-
-    UFUNCTION(Server, Reliable)
-    void ServerHandleKeyPress(const FKey& PressedKey);
-    bool ServerHandleKeyPress_Validate(const FKey& PressedKey);
-
-    UFUNCTION(Server, Reliable)
-    void ServerHandleKeyRelease(const FKey& ReleasedKey);
-    bool ServerHandleKeyRelease_Validate(const FKey& ReleasedKey);
-
-    // Keyboard reference (set from elsewhere or auto-detected)
-    UPROPERTY(BlueprintReadWrite)
-    AKeyballKeyboard* Keyboard;
-
 protected:
-    void HandleKeyPress(const FKey& PressedKey);
-    void HandleKeyRelease(const FKey& ReleasedKey);
+    virtual void BeginPlay() override;
+    virtual void SetupInputComponent() override;
 
-    bool CheckIsValidKey(const FKey& Key, bool& bIsValid, bool& bIsSpecial) const;
-    bool CheckKeyOwner(const FKey& Key);
-    bool CanPlayerPressMoreKeys();
+    void OnAnyKeyPressed(FKey PressedKey);
+    void OnAnyKeyReleased(FKey ReleasedKey);
 
-    int32 GetTeamNumber() const;
-
-    UPROPERTY(BlueprintReadWrite)
-    TArray<FString> CurrentlyPressedKeys;
-
-    UPROPERTY(BlueprintReadWrite)
-    TArray<FString> selectedLayout;
-
-    UPROPERTY(BlueprintReadWrite)
-    TArray<FString> unrealKeyLabels;
-
-    UPROPERTY(BlueprintReadWrite)
-    TMap<FString, FString> UnrealKeyLabelToNaturalGlyphMap;
-
-    UPROPERTY(BlueprintReadWrite)
-    TArray<FString> specialMoveKeys = { "Left Shift", "Tab", "Right Shift", "Delete" };
-
-    UPROPERTY(BlueprintReadWrite)
-    int32 MaxKeysAllowed = 3;
-
-    UPROPERTY(BlueprintReadWrite)
-    bool leftShiftActive;
-
-    UPROPERTY(BlueprintReadWrite)
-    bool rightShiftActive;
+    int32 GetIndexFromFKey(const FKey& InKey) const;
 
 private:
-    FKeyballComboResult KeyballCombo;
+    AKeyballKeyboard* Keyboard;
+    UKeyballComboDetector* ComboDetector;
+
+    UPROPERTY()
+    TArray<int32> CurrentlyPressedIndices;
 };
