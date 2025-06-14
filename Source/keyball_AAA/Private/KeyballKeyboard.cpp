@@ -65,15 +65,30 @@ void AKeyballKeyboard::GenerateFromBlueprintData()
                 if (SpawnedKey->StaticMeshX)
                     SpawnedKey->StaticMeshX->SetStaticMesh(Data.Mesh);
                 if (SpawnedKey->StaticMeshForOutlineX)
+                {
                     SpawnedKey->StaticMeshForOutlineX->SetStaticMesh(Data.Mesh);
+                    if (SpawnedKey->OutlineMaterial)
+                    {
+                        SpawnedKey->StaticMeshForOutlineX->SetMaterial(0, SpawnedKey->OutlineMaterial);
+                        if (GEngine)
+                        {
+                            GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Cyan, FString::Printf(TEXT("Set outline material for key %d: %s"), Data.Index, *SpawnedKey->OutlineMaterial->GetName()));
+                        }
+                    }
+                    else
+                    {
+                        if (GEngine)
+                        {
+                            GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Red, FString::Printf(TEXT("No outline material set for key %d"), Data.Index));
+                        }
+                    }
+                }
             }
 
             RegisterKey(Data.Index, SpawnedKey);
-            GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Spawned key %d"), Data.Index));
         }
         else
         {
-            GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Red, FString::Printf(TEXT("Failed to spawn key %d"), Data.Index));
         }
     }
 }
@@ -126,13 +141,11 @@ void AKeyballKeyboard::RegisterKey(int32 Index, AKeyballKey* Key)
 
 void AKeyballKeyboard::OnKeyPressed(int32 PressedIndex, const TArray<int32>& AllPressedIndices, const FKeyballComboResult& Combo)
 {
-    GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, FString::Printf(TEXT("OnKeyPressed: %d"), PressedIndex));
-    GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, FString::Printf(TEXT("AllPressedIndices: %d"), AllPressedIndices.Num()));
-    GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, FString::Printf(TEXT("Combo: %s"), *Combo.ToString()));
     if (AKeyballKey** Found = KeyMap.Find(PressedIndex))
     {
         AKeyballKey* Key = *Found;
         Key->StartPressAnimation();
+        Key->UpdateOutline(EKeyLEDState::Active);
         ActiveKeys.Add(PressedIndex, Key);
     }
 
@@ -148,6 +161,7 @@ void AKeyballKeyboard::OnKeyReleased(int32 ReleasedIndex, const TArray<int32>& R
     {
         AKeyballKey* Key = *Found;
         Key->StartReleaseAnimation();
+        Key->UpdateOutline(EKeyLEDState::Inactive);
         ActiveKeys.Remove(ReleasedIndex);
     }
 }

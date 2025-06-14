@@ -48,9 +48,7 @@ bool AKeyballPlayerController::InputKey(FKey Key, EInputEvent EventType, float A
 
 void AKeyballPlayerController::OnAnyKeyPressed(FKey PressedKey)
 {
-    GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, FString::Printf(TEXT("OnAnyKeyPressed: %s"), *PressedKey.ToString()));
     int32 Index = GetIndexFromFKey(PressedKey);
-    GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, FString::Printf(TEXT("OnAnyKeyPressed: %d"), Index));
     if (Index < 0 || CurrentlyPressedIndices.Contains(Index)) return;
 
     CurrentlyPressedIndices.Add(Index);

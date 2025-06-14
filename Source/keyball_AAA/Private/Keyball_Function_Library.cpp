@@ -80,7 +80,6 @@ void UKeyball_Function_Library::GetKeysForKeyboard(const TArray<int32>& InKeyboa
         FixedIDs.Init(0, 40);
     }
 
-    GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, TEXT("FixedIDs: ") + FString::FromInt(FixedIDs.Num()));
     // Step 2: Load keyboard configs
     const TArray<FKeyboardDataStruct> OfficialKeyboards = UKeyboardLoader::LoadKeyboardsFromJson();
 
@@ -94,9 +93,7 @@ void UKeyball_Function_Library::GetKeysForKeyboard(const TArray<int32>& InKeyboa
         Data.Index = i;
         Data.Transform = BaseTransforms[i];
 
-        GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, TEXT("BaseTransforms[i]: ") + FString::FromInt(i));
         // log mesh for this key
-        GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, TEXT("Mesh for key %d: ") + FString::FromInt(i));
         int32 KeyboardID = FixedIDs[i];
         const FKeyboardDataStruct* Config = OfficialKeyboards.IsValidIndex(KeyboardID) ? &OfficialKeyboards[KeyboardID] : nullptr;
 
@@ -173,5 +170,4 @@ void UKeyball_Function_Library::GetKeysForKeyboard(const TArray<int32>& InKeyboa
 
         OutKeys.Add(Data);
     }
-    GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, TEXT("OutKeys: ") + FString::FromInt(OutKeys.Num()));
 }
