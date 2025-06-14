@@ -1,15 +1,90 @@
 #include "KeyballKeyboard.h"
+#include "Keyball_Function_Library.h"
 #include "KeyballKey.h"
 #include "Engine/World.h"
-#include "TimerManager.h"
 #include "Kismet/GameplayStatics.h"
-#include "UObject/ConstructorHelpers.h"
+#include "Components/StaticMeshComponent.h"
 
 AKeyballKeyboard::AKeyballKeyboard()
 {
     PrimaryActorTick.bCanEverTick = true;
     bReplicates = true;
+
+// #if WITH_EDITOR
+//     bRunConstructionScriptOnDrag = true;
+// #endif
 }
+
+void AKeyballKeyboard::GenerateFromBlueprintData()
+{
+    ClearKeyboard();
+
+    if (KeyboardIDs.Num() == 0)
+    {
+        KeyboardIDs.Init(2, 40);  // fallback layout
+    }
+
+    TArray<FKeycapSpawnData> SpawnData;
+    UKeyball_Function_Library::GetKeysForKeyboard(KeyboardIDs, SpawnData);
+
+    // Compute center offset to center the layout
+    FVector CenterOffset = FVector::ZeroVector;
+    for (const FKeycapSpawnData& Data : SpawnData)
+    {
+        CenterOffset += Data.Transform.GetLocation();
+    }
+    CenterOffset /= SpawnData.Num();
+
+    for (FKeycapSpawnData& Data : SpawnData)
+    {
+        FVector AdjustedLocation = Data.Transform.GetLocation() - CenterOffset;
+        Data.Transform.SetLocation(AdjustedLocation);
+    }
+
+    for (const FKeycapSpawnData& Data : SpawnData)
+    {
+        if (!KeyActorClass) continue;
+
+        FActorSpawnParameters SpawnParams;
+        SpawnParams.Owner = this;
+        SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+        AKeyballKey* SpawnedKey = GetWorld()->SpawnActor<AKeyballKey>(KeyActorClass, Data.Transform, SpawnParams);
+
+        if (SpawnedKey)
+        {
+            // Attach to keyboard actor
+            SpawnedKey->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
+
+            // Slight scale up
+            // SpawnedKey->SetActorScale3D(FVector(2.0f));
+
+            // Assign mesh
+            if (Data.Mesh)
+            {
+                if (SpawnedKey->StaticMeshX)
+                    SpawnedKey->StaticMeshX->SetStaticMesh(Data.Mesh);
+                if (SpawnedKey->StaticMeshForOutlineX)
+                    SpawnedKey->StaticMeshForOutlineX->SetStaticMesh(Data.Mesh);
+            }
+
+            RegisterKey(Data.Index, SpawnedKey);
+            GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Spawned key %d"), Data.Index));
+        }
+        else
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Red, FString::Printf(TEXT("Failed to spawn key %d"), Data.Index));
+        }
+    }
+}
+
+// #if WITH_EDITOR
+// void AKeyballKeyboard::OnConstruction(const FTransform& Transform)
+// {
+//     Super::OnConstruction(Transform);
+//     GenerateFromBlueprintData();
+// }
+// #endif
 
 void AKeyballKeyboard::BeginPlay()
 {
@@ -30,45 +105,18 @@ void AKeyballKeyboard::Tick(float DeltaTime)
     }
 }
 
-
-void AKeyballKeyboard::GenerateFromBlueprintData()
+void AKeyballKeyboard::ClearKeyboard()
 {
-    TArray<FKeycapSpawnData> SpawnData;
-
-    // Default to "nubs" layout if not set
-    if (KeyboardIDs.Num() == 0)
+    for (auto& Pair : KeyMap)
     {
-        KeyboardIDs.Init(0, 40);
-    }
-
-    // Call the Blueprint function
-    UKeyball_Function_Library::GetKeysForKeyboard(KeyboardIDs, SpawnData);
-
-    for (const FKeycapSpawnData& Data : SpawnData)
-    {
-        if (!KeyActorClass) continue;
-
-        FActorSpawnParameters SpawnParams;
-        SpawnParams.Owner = this;
-        SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-        AKeyballKey* SpawnedKey = GetWorld()->SpawnActor<AKeyballKey>(KeyActorClass, Data.Transform, SpawnParams);
-
-        if (SpawnedKey)
+        if (Pair.Value && !Pair.Value->IsPendingKill())
         {
-            RegisterKey(Data.Index, SpawnedKey);
-
-            // Attach to the keyboard actor for hierarchy
-            SpawnedKey->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
-
-            // Optionally set the mesh (add a method to AKeyballKey to do this if needed)
-            UStaticMeshComponent* MeshComp = SpawnedKey->FindComponentByClass<UStaticMeshComponent>();
-            if (MeshComp && Data.Mesh)
-            {
-                MeshComp->SetStaticMesh(Data.Mesh);
-            }
+            Pair.Value->Destroy();
         }
     }
+
+    KeyMap.Empty();
+    ActiveKeys.Empty();
 }
 
 void AKeyballKeyboard::RegisterKey(int32 Index, AKeyballKey* Key)
@@ -78,6 +126,9 @@ void AKeyballKeyboard::RegisterKey(int32 Index, AKeyballKey* Key)
 
 void AKeyballKeyboard::OnKeyPressed(int32 PressedIndex, const TArray<int32>& AllPressedIndices, const FKeyballComboResult& Combo)
 {
+    GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, FString::Printf(TEXT("OnKeyPressed: %d"), PressedIndex));
+    GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, FString::Printf(TEXT("AllPressedIndices: %d"), AllPressedIndices.Num()));
+    GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, FString::Printf(TEXT("Combo: %s"), *Combo.ToString()));
     if (AKeyballKey** Found = KeyMap.Find(PressedIndex))
     {
         AKeyballKey* Key = *Found;
@@ -103,7 +154,7 @@ void AKeyballKeyboard::OnKeyReleased(int32 ReleasedIndex, const TArray<int32>& R
 
 void AKeyballKeyboard::ApplyComboEffect(const FKeyballComboResult& Combo)
 {
-    // TODO: Implement combo-driven effects like whack, ripple, etc.
+    // TODO: Handle visual/audio effects for combos
 }
 
 void AKeyballKeyboard::OnComboTriggered(const FKeyballComboResult& Combo)

@@ -20,6 +20,16 @@ public:
     void StartReleaseAnimation();
     void UpdateKeyAnimation(float DeltaTime);
 
+    UPROPERTY(BlueprintReadWrite, VisibleAnywhere)
+    UStaticMeshComponent* StaticMeshX;
+
+    UPROPERTY(BlueprintReadWrite, VisibleAnywhere)
+    UStaticMeshComponent* StaticMeshForOutlineX;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Keyball|Visuals")
+    UMaterialInterface* OutlineMaterial;
+
+
 protected:
     virtual void BeginPlay() override;
 
@@ -46,4 +56,5 @@ protected:
     };
 
     FKeyTransformState TransformState;
+
 };

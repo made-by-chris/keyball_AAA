@@ -14,6 +14,16 @@ class KEYBALL_AAA_API AKeyballPlayerController : public APlayerController
 {
     GENERATED_BODY()
 
+    UFUNCTION()
+    void HandleAnyKeyPressed();
+
+    UFUNCTION()
+    void HandleAnyKeyReleased();
+
+    void OnAnyKeyPressed(FKey PressedKey);     // Your original method
+    void OnAnyKeyReleased(FKey ReleasedKey);   // Your original method
+
+
 public:
     AKeyballPlayerController();
 
@@ -21,10 +31,9 @@ protected:
     virtual void BeginPlay() override;
     virtual void SetupInputComponent() override;
 
-    void OnAnyKeyPressed(FKey PressedKey);
-    void OnAnyKeyReleased(FKey ReleasedKey);
-
     int32 GetIndexFromFKey(const FKey& InKey) const;
+
+    virtual bool InputKey(FKey Key, EInputEvent EventType, float AmountDepressed, bool bGamepad) override;
 
 private:
     AKeyballKeyboard* Keyboard;

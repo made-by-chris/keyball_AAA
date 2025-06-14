@@ -33,6 +33,7 @@ public:
 
     virtual void BeginPlay() override;
     virtual void Tick(float DeltaTime) override;
+    // virtual void OnConstruction(const FTransform& Transform) override;
 
     void RegisterKey(int32 Index, AKeyballKey* Key);
 
@@ -60,4 +61,6 @@ protected:
     TSubclassOf<AKeyballKey> KeyActorClass;
 
     void ApplyComboEffect(const FKeyballComboResult& Combo);
+
+    void ClearKeyboard();
 };
