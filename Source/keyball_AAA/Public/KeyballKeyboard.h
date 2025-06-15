@@ -5,6 +5,7 @@
 #include "KeyballComboDetector.h"
 #include "KeyballKeyboard.generated.h"
 
+
 class AKeyballKey;
 class UStaticMesh;
 
@@ -63,4 +64,13 @@ protected:
     void ApplyComboEffect(const FKeyballComboResult& Combo);
 
     void ClearKeyboard();
+
+
+    void ApplyWhackCombo(const FKeyballComboResult& Combo);
+    FVector GetWhackRotationAxis(EKeyballDirection Direction) const;
+    void ApplyStairsCombo(const FKeyballComboResult& Combo);
+
+
 };
+
+

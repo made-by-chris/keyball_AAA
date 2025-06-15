@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "KeyballComboDetector.h"
 #include "KeyballKey.generated.h"
 
 UENUM(BlueprintType)
@@ -28,9 +29,12 @@ public:
 
     void StartPressAnimation();
     void StartReleaseAnimation();
-    void UpdateKeyAnimation(float DeltaTime);
+
     void UpdateOutline(EKeyLEDState NewState);
     void OnConstruction(const FTransform& Transform);
+
+    UPROPERTY(BlueprintReadWrite, VisibleAnywhere)
+    USceneComponent* SharedTransformComponent;
 
     UPROPERTY(BlueprintReadWrite, VisibleAnywhere)
     UStaticMeshComponent* StaticMeshX;
@@ -61,6 +65,14 @@ public:
 
     EKeyLEDState CurrentState = EKeyLEDState::Inactive;
 
+    void TriggerWhack(const FVector& InAxis, EKeyballDirection Direction);
+    void SetCustomZOffset(float NewZ);
+
+
+    UFUNCTION(BlueprintCallable, Category = "Keyball|Animation")
+    void UpdateKeyAnimation(float DeltaTime);
+    void SetLocalZOffset(float Z);
+
 protected:
     virtual void BeginPlay() override;
 
@@ -69,9 +81,11 @@ protected:
 
     // Animation
     float AnimationSpeed = 5.0f;
-    float TargetZOffset = 0.f;
-    float CurrentZOffset = 0.f;
-    float MaxZOffset = 20.0f;
+        
+    float TargetLocalZOffset = 0.f;
+    float CurrentLocalZOffset = 0.f;
+    float MaxLocalZOffset = 20.f;
+
 
     // Transform handling
     struct FKeyTransformState
@@ -87,5 +101,22 @@ protected:
     };
 
     FKeyTransformState TransformState;
+
+private:
+    // Whack state
+    bool bWhackActive = false;
+    FTransform WhackTransform;
+    FVector WhackAxis = FVector::UpVector;
+    float WhackElapsedTime = 0.f;
+    float WhackDuration = 0.6f;
+    float WhackMaxAngle = 90.f;
+    float WhackReturnAngle = 45.f;
+
+    FVector WhackPivot = FVector::ZeroVector;
+
+    TMap<EKeyballDirection, FVector> TopFacePivots;
+
+    void CacheTopFacePivots();
+
 
 };

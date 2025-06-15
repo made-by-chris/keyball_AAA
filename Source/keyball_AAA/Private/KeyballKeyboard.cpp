@@ -9,10 +9,6 @@ AKeyballKeyboard::AKeyballKeyboard()
 {
     PrimaryActorTick.bCanEverTick = true;
     bReplicates = true;
-
-// #if WITH_EDITOR
-//     bRunConstructionScriptOnDrag = true;
-// #endif
 }
 
 void AKeyballKeyboard::GenerateFromBlueprintData()
@@ -21,13 +17,12 @@ void AKeyballKeyboard::GenerateFromBlueprintData()
 
     if (KeyboardIDs.Num() == 0)
     {
-        KeyboardIDs.Init(2, 40);  // fallback layout
+        KeyboardIDs.Init(5, 40);  // fallback layout
     }
 
     TArray<FKeycapSpawnData> SpawnData;
     UKeyball_Function_Library::GetKeysForKeyboard(KeyboardIDs, SpawnData);
 
-    // Compute center offset to center the layout
     FVector CenterOffset = FVector::ZeroVector;
     for (const FKeycapSpawnData& Data : SpawnData)
     {
@@ -53,13 +48,8 @@ void AKeyballKeyboard::GenerateFromBlueprintData()
 
         if (SpawnedKey)
         {
-            // Attach to keyboard actor
             SpawnedKey->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
 
-            // Slight scale up
-            // SpawnedKey->SetActorScale3D(FVector(2.0f));
-
-            // Assign mesh
             if (Data.Mesh)
             {
                 if (SpawnedKey->StaticMeshX)
@@ -67,39 +57,13 @@ void AKeyballKeyboard::GenerateFromBlueprintData()
                 if (SpawnedKey->StaticMeshForOutlineX)
                 {
                     SpawnedKey->StaticMeshForOutlineX->SetStaticMesh(Data.Mesh);
-                    if (SpawnedKey->OutlineMaterial)
-                    {
-                        SpawnedKey->StaticMeshForOutlineX->SetMaterial(0, SpawnedKey->OutlineMaterial);
-                        if (GEngine)
-                        {
-                            GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Cyan, FString::Printf(TEXT("Set outline material for key %d: %s"), Data.Index, *SpawnedKey->OutlineMaterial->GetName()));
-                        }
-                    }
-                    else
-                    {
-                        if (GEngine)
-                        {
-                            GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Red, FString::Printf(TEXT("No outline material set for key %d"), Data.Index));
-                        }
-                    }
                 }
             }
 
             RegisterKey(Data.Index, SpawnedKey);
         }
-        else
-        {
-        }
     }
 }
-
-// #if WITH_EDITOR
-// void AKeyballKeyboard::OnConstruction(const FTransform& Transform)
-// {
-//     Super::OnConstruction(Transform);
-//     GenerateFromBlueprintData();
-// }
-// #endif
 
 void AKeyballKeyboard::BeginPlay()
 {
@@ -168,10 +132,79 @@ void AKeyballKeyboard::OnKeyReleased(int32 ReleasedIndex, const TArray<int32>& R
 
 void AKeyballKeyboard::ApplyComboEffect(const FKeyballComboResult& Combo)
 {
-    // TODO: Handle visual/audio effects for combos
+    switch (Combo.MoveType)
+    {
+        case EKeyballMoveType::Whack:
+            ApplyWhackCombo(Combo);
+            break;
+        case EKeyballMoveType::Stairs:
+            ApplyStairsCombo(Combo);
+            break;
+
+        // Future cases:
+        // case EKeyballMoveType::Stairs: ApplyStairsCombo(Combo); break;
+        // case EKeyballMoveType::Wave:   ApplyWaveCombo(Combo); break;
+
+        default:
+            break;
+    }
+}
+
+void AKeyballKeyboard::ApplyWhackCombo(const FKeyballComboResult& Combo)
+{
+    if (Combo.KeysIndex.Num() < 2) return;
+
+    int32 IndexA = Combo.KeysIndex[0];
+    int32 IndexB = Combo.KeysIndex[1];
+    EKeyballDirection Direction = Combo.Direction;
+
+    if (!KeyMap.Contains(IndexA)) return;
+
+    AKeyballKey* KeyA = KeyMap[IndexA];
+    if (!KeyA) return;
+
+    FVector Axis = GetWhackRotationAxis(Direction);
+    KeyA->TriggerWhack(Axis, Direction);
+
+}
+
+FVector AKeyballKeyboard::GetWhackRotationAxis(EKeyballDirection Direction) const
+{
+    static const TMap<EKeyballDirection, FVector> AxisMap = {
+        { EKeyballDirection::Up,        FVector(1, 0, 0) },
+        { EKeyballDirection::Down,      FVector(-1, 0, 0) },
+        { EKeyballDirection::Left,      FVector(0, 1, 0) },
+        { EKeyballDirection::Right,     FVector(0, -1, 0) },
+        { EKeyballDirection::UpRight,   FVector(1, -1, 0).GetSafeNormal() },
+        { EKeyballDirection::UpLeft,    FVector(1, 1, 0).GetSafeNormal() },
+        { EKeyballDirection::DownRight, FVector(-1, -1, 0).GetSafeNormal() },
+        { EKeyballDirection::DownLeft,  FVector(-1, 1, 0).GetSafeNormal() },
+        { EKeyballDirection::None,      FVector::UpVector }
+    };
+
+    const FVector* Found = AxisMap.Find(Direction);
+    return Found ? *Found : FVector::UpVector;
 }
 
 void AKeyballKeyboard::OnComboTriggered(const FKeyballComboResult& Combo)
 {
     ApplyComboEffect(Combo);
+}
+
+void AKeyballKeyboard::ApplyStairsCombo(const FKeyballComboResult& Combo)
+{
+    if (Combo.KeysIndex.Num() != 3) return;
+
+    // Define stair step heights
+    TArray<float> StepHeights = { 10.f, 20.f, 30.f };
+
+    for (int32 i = 0; i < 3; ++i)
+    {
+        int32 KeyIndex = Combo.KeysIndex[i];
+        if (AKeyballKey* Key = KeyMap.FindRef(KeyIndex))
+        {
+            Key->SetLocalZOffset(StepHeights[i]);
+            ActiveKeys.Add(KeyIndex, Key); // Ensure it keeps ticking
+        }
+    }
 }
