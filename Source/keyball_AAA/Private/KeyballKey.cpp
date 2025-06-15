@@ -3,16 +3,21 @@
 #include "DrawDebugHelpers.h"
 #include "KeyballComboDetector.h"
 
+// Define the static member at file scope
+const float AKeyballKey::GenericKeyPressZOffset = 10.f;
+
 AKeyballKey::AKeyballKey()
 {
     PrimaryActorTick.bCanEverTick = true;
     AnimationSpeed = 25.0f;
     TargetLocalZOffset =  0.0f;
     CurrentLocalZOffset = 0.0f;
-    MaxLocalZOffset = 20.0f;
+    MaxLocalZOffset = 200.0f;
+
+    RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 
     SharedTransformComponent = CreateDefaultSubobject<USceneComponent>(TEXT("SharedTransform"));
-    RootComponent = SharedTransformComponent;
+    SharedTransformComponent->SetupAttachment(RootComponent);
 
     StaticMeshX = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshX"));
     StaticMeshX->SetupAttachment(SharedTransformComponent);
@@ -48,7 +53,7 @@ void AKeyballKey::Tick(float DeltaTime)
 
 void AKeyballKey::StartPressAnimation()
 {
-    TargetLocalZOffset =  MaxLocalZOffset;
+    TargetLocalZOffset = GenericKeyPressZOffset;
 }
 
 void AKeyballKey::StartReleaseAnimation()
@@ -70,6 +75,25 @@ void AKeyballKey::UpdateKeyAnimation(float DeltaTime)
     // Base translation (from actor's world placement)
     FTransform BaseLocal = FTransform::Identity;
     BaseLocal.SetTranslation(FVector::ZeroVector); // We now let the actor handle base location
+
+    // wave is a shared layer effect, so it is not mutually exclusive with the whack 
+    if (bWaveActive)
+    {
+        WaveTimeElapsed += DeltaTime;
+
+        float Progress = WaveTimeElapsed / WaveDuration;
+        float Phase = WaveFrequency * 2.f * PI * WaveTimeElapsed + WavePhaseOffset;
+        float OffsetZ = FMath::Sin(Phase) * WaveAmplitude;
+
+        FVector SharedOffset(0, 0, OffsetZ);
+        SharedTransformComponent->SetRelativeLocation(SharedOffset);
+
+        if (WaveTimeElapsed >= WaveDuration)
+        {
+            StopWave();
+        }
+    }
+
 
     if (bWhackActive)
     {
@@ -145,7 +169,7 @@ void AKeyballKey::SetLocalZOffset(float Z)
     TargetLocalZOffset = FMath::Clamp(Z, 0.f, MaxLocalZOffset * 2.f);
 }
 
-void AKeyballKey::UpdateOutline(EKeyLEDState NewState)
+void AKeyballKey::UpdateOutline(EKeyLEDState NewState, FKeyballComboResult Combo)
 {
     CurrentState = NewState;
     if (!OutlineMID) return;
@@ -162,6 +186,29 @@ void AKeyballKey::UpdateOutline(EKeyLEDState NewState)
         case EKeyLEDState::Cooldown:     ColorToSet = CooldownColor; break;
     }
 
+    // let's add another switch which takes priority, and colours stuff based on the combo type instead 
+    switch (Combo.MoveType)
+    {
+        case EKeyballMoveType::Whack:
+            ColorToSet = WhackColor;
+            break;
+        case EKeyballMoveType::Stairs:
+            ColorToSet = StairsColor;
+            break;
+        case EKeyballMoveType::Ripple:
+            ColorToSet = RippleColor;
+            break;
+        case EKeyballMoveType::Wave:
+            ColorToSet = WaveColor;
+            break;
+        case EKeyballMoveType::Tilt:
+            ColorToSet = TiltColor;
+            break;
+        case EKeyballMoveType::Diagonal:
+            ColorToSet = DiagonalColor;
+            break;
+    }
+
     OutlineMID->SetVectorParameterValue("Color", ColorToSet);
     OutlineMID->SetScalarParameterValue("Opacity", Opacity);    
 }
@@ -169,4 +216,18 @@ void AKeyballKey::UpdateOutline(EKeyLEDState NewState)
 void AKeyballKey::OnConstruction(const FTransform& Transform)
 {
     Super::OnConstruction(Transform);
+}
+
+void AKeyballKey::StartWave(float InPhaseOffset)
+{
+    WaveTimeElapsed = 0.f;
+    WavePhaseOffset = InPhaseOffset;
+    bWaveActive = true;
+}
+
+void AKeyballKey::StopWave()
+{
+    bWaveActive = false;
+    WaveTimeElapsed = 0.f;
+    SharedTransformComponent->SetRelativeLocation(FVector::ZeroVector);
 }

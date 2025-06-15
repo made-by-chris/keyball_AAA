@@ -108,8 +108,12 @@ void AKeyballKeyboard::OnKeyPressed(int32 PressedIndex, const TArray<int32>& All
     if (AKeyballKey** Found = KeyMap.Find(PressedIndex))
     {
         AKeyballKey* Key = *Found;
-        Key->StartPressAnimation();
-        Key->UpdateOutline(EKeyLEDState::Active);
+        // if this key has the second index in the combo, and it's whack, then don't do the following:
+        if (Combo.MoveType != EKeyballMoveType::Whack)
+        {
+            Key->StartPressAnimation();
+        }
+        Key->UpdateOutline(EKeyLEDState::Active, Combo);
         ActiveKeys.Add(PressedIndex, Key);
     }
 
@@ -140,6 +144,9 @@ void AKeyballKeyboard::ApplyComboEffect(const FKeyballComboResult& Combo)
         case EKeyballMoveType::Stairs:
             ApplyStairsCombo(Combo);
             break;
+        case EKeyballMoveType::Wave:
+            ApplyWaveCombo(Combo);
+            break;
 
         // Future cases:
         // case EKeyballMoveType::Stairs: ApplyStairsCombo(Combo); break;
@@ -152,10 +159,8 @@ void AKeyballKeyboard::ApplyComboEffect(const FKeyballComboResult& Combo)
 
 void AKeyballKeyboard::ApplyWhackCombo(const FKeyballComboResult& Combo)
 {
-    if (Combo.KeysIndex.Num() < 2) return;
-
     int32 IndexA = Combo.KeysIndex[0];
-    int32 IndexB = Combo.KeysIndex[1];
+    // Do not activate IndexB
     EKeyballDirection Direction = Combo.Direction;
 
     if (!KeyMap.Contains(IndexA)) return;
@@ -165,20 +170,20 @@ void AKeyballKeyboard::ApplyWhackCombo(const FKeyballComboResult& Combo)
 
     FVector Axis = GetWhackRotationAxis(Direction);
     KeyA->TriggerWhack(Axis, Direction);
-
 }
+
 
 FVector AKeyballKeyboard::GetWhackRotationAxis(EKeyballDirection Direction) const
 {
     static const TMap<EKeyballDirection, FVector> AxisMap = {
-        { EKeyballDirection::Up,        FVector(1, 0, 0) },
-        { EKeyballDirection::Down,      FVector(-1, 0, 0) },
-        { EKeyballDirection::Left,      FVector(0, 1, 0) },
-        { EKeyballDirection::Right,     FVector(0, -1, 0) },
-        { EKeyballDirection::UpRight,   FVector(1, -1, 0).GetSafeNormal() },
+        { EKeyballDirection::Up,        FVector(0, 1, 0) },
+        { EKeyballDirection::Down,      FVector(0, -1, 0) },
+        { EKeyballDirection::Left,      FVector(1, 0, 0) },
+        { EKeyballDirection::Right,     FVector(-1, 0, 0) },
+        { EKeyballDirection::UpRight,   FVector(-1, 1, 0).GetSafeNormal() },
         { EKeyballDirection::UpLeft,    FVector(1, 1, 0).GetSafeNormal() },
         { EKeyballDirection::DownRight, FVector(-1, -1, 0).GetSafeNormal() },
-        { EKeyballDirection::DownLeft,  FVector(-1, 1, 0).GetSafeNormal() },
+        { EKeyballDirection::DownLeft,  FVector(1, -1, 0).GetSafeNormal() },
         { EKeyballDirection::None,      FVector::UpVector }
     };
 
@@ -195,16 +200,67 @@ void AKeyballKeyboard::ApplyStairsCombo(const FKeyballComboResult& Combo)
 {
     if (Combo.KeysIndex.Num() != 3) return;
 
-    // Define stair step heights
-    TArray<float> StepHeights = { 10.f, 20.f, 30.f };
-
+    TArray<float> StepHeights = { 
+        AKeyballKey::GenericKeyPressZOffset * 1, 
+        AKeyballKey::GenericKeyPressZOffset * 2, 
+        AKeyballKey::GenericKeyPressZOffset * 3 
+    };
+    
     for (int32 i = 0; i < 3; ++i)
     {
         int32 KeyIndex = Combo.KeysIndex[i];
         if (AKeyballKey* Key = KeyMap.FindRef(KeyIndex))
         {
+            // Cancel any active whack
+            Key->StartReleaseAnimation();
+
             Key->SetLocalZOffset(StepHeights[i]);
-            ActiveKeys.Add(KeyIndex, Key); // Ensure it keeps ticking
+            ActiveKeys.Add(KeyIndex, Key);
         }
+    }
+}
+
+void AKeyballKeyboard::ApplyWaveCombo(const FKeyballComboResult& Combo)
+{
+    if (Combo.KeysIndex.Num() < 2) return;
+
+    int32 StartIndex = Combo.KeysIndex[0];
+    int32 EndIndex = Combo.KeysIndex.Last();
+
+    // Determine direction: row or column
+    bool bIsHorizontal = FMath::Abs(EndIndex - StartIndex) <= 4; // 5-wide row
+
+    TArray<int32> AffectedKeys;
+    if (bIsHorizontal)
+    {
+        int RowStart = StartIndex / 10 * 10;
+        for (int32 i = 0; i < 10; ++i)
+        {
+            int32 Index = RowStart + i;
+            if (KeyMap.Contains(Index))
+            {
+                AffectedKeys.Add(Index);
+            }
+        }
+    }
+    else // vertical
+    {
+        int Col = StartIndex % 10;
+        for (int32 r = 0; r < 4; ++r)
+        {
+            int32 Index = r * 10 + Col;
+            if (KeyMap.Contains(Index))
+            {
+                AffectedKeys.Add(Index);
+            }
+        }
+    }
+
+    for (int32 i = 0; i < AffectedKeys.Num(); ++i)
+    {
+        int32 Index = AffectedKeys[i];
+        AKeyballKey* Key = KeyMap[Index];
+        float PhaseOffset = i * PI / 4.f; // customize this for smoother spacing
+        Key->StartWave(PhaseOffset);
     }
 }

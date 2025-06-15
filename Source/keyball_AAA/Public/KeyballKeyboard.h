@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "KeyballComboDetector.h"
+#include "KeyballKey.h"
 #include "KeyballKeyboard.generated.h"
 
 
@@ -69,7 +70,12 @@ protected:
     void ApplyWhackCombo(const FKeyballComboResult& Combo);
     FVector GetWhackRotationAxis(EKeyballDirection Direction) const;
     void ApplyStairsCombo(const FKeyballComboResult& Combo);
+    void ApplyWaveCombo(const FKeyballComboResult& Combo);
 
+    // void ApplyRippleCombo(const FKeyballComboResult& Combo);
+    // void ApplyTiltCombo(const FKeyballComboResult& Combo);
+    // void ApplyDiagonalCombo(const FKeyballComboResult& Combo);
+    // and later, seesaw, bowl, curl, conveyor force, catapult/"lob", etc.
 
 };
 
