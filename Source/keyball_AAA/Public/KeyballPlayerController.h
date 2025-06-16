@@ -27,6 +27,8 @@ class KEYBALL_AAA_API AKeyballPlayerController : public APlayerController
 public:
     AKeyballPlayerController();
 
+    void updateLayout(const TArray<FString>& NewLayout);
+
 protected:
     virtual void BeginPlay() override;
     virtual void SetupInputComponent() override;
@@ -49,6 +51,8 @@ private:
     TMap<int32, float> LastPressTimeP1;
     TMap<int32, float> LastPressTimeP2;
     float doubleTapT = 0.4f;
+
+    TArray<FString> layout;
 
     int32 GetPlayerForIndex(int32 Index) const;
 };

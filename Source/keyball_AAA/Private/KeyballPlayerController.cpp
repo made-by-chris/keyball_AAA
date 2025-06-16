@@ -168,3 +168,8 @@ int32 AKeyballPlayerController::GetPlayerForIndex(int32 Index) const
     if (Index < 0 || Index > 39) return -1;
     return (Index % 10 <= 4) ? 1 : 2;
 }
+
+void AKeyballPlayerController::updateLayout(const TArray<FString>& NewLayout)
+{
+    layout = NewLayout;
+}
