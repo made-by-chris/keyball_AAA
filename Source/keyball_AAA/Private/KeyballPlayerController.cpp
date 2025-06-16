@@ -14,6 +14,7 @@ AKeyballPlayerController::AKeyballPlayerController()
     bEnableMouseOverEvents = true;
     Keyboard = nullptr;
     ComboDetector = nullptr;
+    doubleTapT = 0.4f;
 }
 
 void AKeyballPlayerController::BeginPlay()
@@ -51,12 +52,24 @@ void AKeyballPlayerController::OnAnyKeyPressed(FKey PressedKey)
     int32 Index = GetIndexFromFKey(PressedKey);
     if (Index < 0) return;
 
+    // Magic key logic
+    if (PressedKey == EKeys::LeftShift)
+        leftMagic = true;
+    if (PressedKey == EKeys::RightShift || PressedKey == EKeys::Delete)
+        rightMagic = true;
+
     int32 Player = GetPlayerForIndex(Index);
+    float CurrentTime = GetWorld()->GetTimeSeconds();
+    bool isDoubleTap = false;
+
     if (Player == 1)
     {
         if (CurrentlyPressedIndicesP1.Contains(Index)) return;
+        float* LastTime = LastPressTimeP1.Find(Index);
+        if (LastTime && (CurrentTime - *LastTime) < doubleTapT)
+            isDoubleTap = true;
+        LastPressTimeP1.Add(Index, CurrentTime);
         CurrentlyPressedIndicesP1.Add(Index);
-
         FKeyballComboResult KeyballCombo;
         if (ComboDetector)
         {
@@ -64,14 +77,17 @@ void AKeyballPlayerController::OnAnyKeyPressed(FKey PressedKey)
         }
         if (Keyboard)
         {
-            Keyboard->OnKeyPressed(Index, CurrentlyPressedIndicesP1, KeyballCombo);
+            Keyboard->OnKeyPressed(Index, CurrentlyPressedIndicesP1, KeyballCombo, leftMagic, rightMagic, isDoubleTap);
         }
     }
     else if (Player == 2)
     {
         if (CurrentlyPressedIndicesP2.Contains(Index)) return;
+        float* LastTime = LastPressTimeP2.Find(Index);
+        if (LastTime && (CurrentTime - *LastTime) < doubleTapT)
+            isDoubleTap = true;
+        LastPressTimeP2.Add(Index, CurrentTime);
         CurrentlyPressedIndicesP2.Add(Index);
-
         FKeyballComboResult KeyballCombo;
         if (ComboDetector)
         {
@@ -79,7 +95,7 @@ void AKeyballPlayerController::OnAnyKeyPressed(FKey PressedKey)
         }
         if (Keyboard)
         {
-            Keyboard->OnKeyPressed(Index, CurrentlyPressedIndicesP2, KeyballCombo);
+            Keyboard->OnKeyPressed(Index, CurrentlyPressedIndicesP2, KeyballCombo, leftMagic, rightMagic, isDoubleTap);
         }
     }
 }
@@ -89,6 +105,12 @@ void AKeyballPlayerController::OnAnyKeyReleased(FKey ReleasedKey)
     int32 Index = GetIndexFromFKey(ReleasedKey);
     int32 Player = GetPlayerForIndex(Index);
     if (Index < 0) return;
+
+    // Magic key logic
+    if (ReleasedKey == EKeys::LeftShift)
+        leftMagic = false;
+    if (ReleasedKey == EKeys::RightShift || ReleasedKey == EKeys::Delete)
+        rightMagic = false;
 
     if (Player == 1)
     {

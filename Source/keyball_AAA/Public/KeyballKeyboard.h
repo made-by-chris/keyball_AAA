@@ -39,7 +39,7 @@ public:
 
     void RegisterKey(int32 Index, AKeyballKey* Key);
 
-    void OnKeyPressed(int32 PressedIndex, const TArray<int32>& AllPressedIndices, const FKeyballComboResult& Combo);
+    void OnKeyPressed(int32 PressedIndex, const TArray<int32>& AllPressedIndices, const FKeyballComboResult& Combo, bool leftMagic, bool rightMagic, bool isDoubleTap);
     void OnKeyReleased(int32 ReleasedIndex, const TArray<int32>& RemainingPressedIndices);
 
     UFUNCTION(BlueprintCallable)
@@ -54,8 +54,6 @@ protected:
     // Tracks which keys are active (e.g., visually pressed)
     TMap<int32, AKeyballKey*> ActiveKeys;
 
-    // Layout input for keyboard generator function
-    UPROPERTY(EditAnywhere, Category = "Keyboard")
     TArray<int32> KeyboardIDs;
 
     // Actor class to spawn for keys

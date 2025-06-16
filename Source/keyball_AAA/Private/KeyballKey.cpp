@@ -9,7 +9,8 @@ const float AKeyballKey::GenericKeyPressZOffset = 8.f;
 AKeyballKey::AKeyballKey()
 {
     PrimaryActorTick.bCanEverTick = true;
-    AnimationSpeed = 25.0f;
+    AnimationSpeed = 2.5f;
+    DoubleTapAnimationSpeed = 20.0f;
     TargetLocalZOffset =  0.0f;
     CurrentLocalZOffset = 0.0f;
     MaxLocalZOffset = 200.0f;
@@ -51,9 +52,11 @@ void AKeyballKey::Tick(float DeltaTime)
     UpdateKeyAnimation(DeltaTime);
 }
 
-void AKeyballKey::StartPressAnimation()
+void AKeyballKey::StartPressAnimation(bool isDoubleTap, bool magicActive)
 {
     TargetLocalZOffset = GenericKeyPressZOffset;
+    bMagicActive = magicActive;
+    bIsDoubleTapActive = isDoubleTap;
 }
 
 void AKeyballKey::StartReleaseAnimation()
@@ -66,7 +69,8 @@ void AKeyballKey::StartReleaseAnimation()
 
 void AKeyballKey::UpdateKeyAnimation(float DeltaTime)
 {
-    CurrentLocalZOffset = FMath::FInterpTo(CurrentLocalZOffset, TargetLocalZOffset, DeltaTime, AnimationSpeed);
+    float Speed = bIsDoubleTapActive ? DoubleTapAnimationSpeed : AnimationSpeed;
+    CurrentLocalZOffset = FMath::FInterpTo(CurrentLocalZOffset, TargetLocalZOffset, DeltaTime, Speed);
 
     FVector LocalOffset(0, 0, CurrentLocalZOffset);
 

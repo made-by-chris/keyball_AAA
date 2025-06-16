@@ -8,6 +8,7 @@
 AKeyballKeyboard::AKeyballKeyboard()
 {
     PrimaryActorTick.bCanEverTick = true;
+    KeyboardIDs.Init(0, 40);
     bReplicates = true;
 }
 
@@ -103,18 +104,20 @@ void AKeyballKeyboard::RegisterKey(int32 Index, AKeyballKey* Key)
     KeyMap.Add(Index, Key);
 }
 
-void AKeyballKeyboard::OnKeyPressed(int32 PressedIndex, const TArray<int32>& AllPressedIndices, const FKeyballComboResult& Combo)
+void AKeyballKeyboard::OnKeyPressed(int32 PressedIndex, const TArray<int32>& AllPressedIndices, const FKeyballComboResult& Combo, bool leftMagic, bool rightMagic, bool isDoubleTap)
 {
     if (AKeyballKey** Found = KeyMap.Find(PressedIndex))
     {
         AKeyballKey* Key = *Found;
-        // if this key has the second index in the combo, and it's whack, then don't do the following:
         if (Combo.MoveType != EKeyballMoveType::Whack)
         {
-            Key->StartPressAnimation();
+            // Determine which magic to use based on which half of the board
+            bool magicActive = (PressedIndex % 10 <= 4) ? leftMagic : rightMagic;
+            Key->StartPressAnimation(isDoubleTap, magicActive);
         }
         Key->UpdateOutline(EKeyLEDState::Active, Combo);
         ActiveKeys.Add(PressedIndex, Key);
+        // You can use leftMagic, rightMagic, isDoubleTap here for further effects if needed
     }
 
     if (Combo.MoveType != EKeyballMoveType::None)

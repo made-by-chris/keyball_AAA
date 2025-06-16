@@ -27,7 +27,7 @@ public:
 
     virtual void Tick(float DeltaTime) override;
 
-    void StartPressAnimation();
+    void StartPressAnimation(bool isDoubleTap = false, bool magicActive = false);
     void StartReleaseAnimation();
 
     void UpdateOutline(EKeyLEDState NewState, FKeyballComboResult Combo = FKeyballComboResult());
@@ -111,10 +111,15 @@ protected:
     FString Symbol; // purely for UI/debug
 
     // Animation
-    float AnimationSpeed = 5.0f;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Keyball|Animation")
+    float AnimationSpeed = 0.05f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Keyball|Animation")
+    float DoubleTapAnimationSpeed = 10.0f;
     float TargetLocalZOffset = 0.f;
     float CurrentLocalZOffset = 0.f;
     float MaxLocalZOffset = 200.f;
+    bool bMagicActive = false;
 
     // Transform handling
     struct FKeyTransformState
@@ -154,4 +159,6 @@ private:
     float WavePhaseOffset = 0.f;
     float WaveAmplitude = 15.f;
     float WaveFrequency = 2.f;
+
+    bool bIsDoubleTapActive = false;
 };

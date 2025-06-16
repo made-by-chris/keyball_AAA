@@ -44,5 +44,11 @@ private:
     UPROPERTY()
     TArray<int32> CurrentlyPressedIndicesP2;
 
+    bool leftMagic = false;
+    bool rightMagic = false;
+    TMap<int32, float> LastPressTimeP1;
+    TMap<int32, float> LastPressTimeP2;
+    float doubleTapT = 0.4f;
+
     int32 GetPlayerForIndex(int32 Index) const;
 };
