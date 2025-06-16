@@ -17,7 +17,7 @@ void AKeyballKeyboard::GenerateFromBlueprintData()
 
     if (KeyboardIDs.Num() == 0)
     {
-        KeyboardIDs.Init(5, 40);  // fallback layout
+        KeyboardIDs.Init(0, 40);  // fallback layout
     }
 
     TArray<FKeycapSpawnData> SpawnData;

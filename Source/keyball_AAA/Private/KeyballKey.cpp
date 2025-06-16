@@ -4,7 +4,7 @@
 #include "KeyballComboDetector.h"
 
 // Define the static member at file scope
-const float AKeyballKey::GenericKeyPressZOffset = 10.f;
+const float AKeyballKey::GenericKeyPressZOffset = 8.f;
 
 AKeyballKey::AKeyballKey()
 {

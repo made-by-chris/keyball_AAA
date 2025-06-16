@@ -40,5 +40,9 @@ private:
     UKeyballComboDetector* ComboDetector;
 
     UPROPERTY()
-    TArray<int32> CurrentlyPressedIndices;
+    TArray<int32> CurrentlyPressedIndicesP1;
+    UPROPERTY()
+    TArray<int32> CurrentlyPressedIndicesP2;
+
+    int32 GetPlayerForIndex(int32 Index) const;
 };

@@ -49,32 +49,62 @@ bool AKeyballPlayerController::InputKey(FKey Key, EInputEvent EventType, float A
 void AKeyballPlayerController::OnAnyKeyPressed(FKey PressedKey)
 {
     int32 Index = GetIndexFromFKey(PressedKey);
-    if (Index < 0 || CurrentlyPressedIndices.Contains(Index)) return;
+    if (Index < 0) return;
 
-    CurrentlyPressedIndices.Add(Index);
-
-    FKeyballComboResult KeyballCombo;
-    if (ComboDetector)
+    int32 Player = GetPlayerForIndex(Index);
+    if (Player == 1)
     {
-        KeyballCombo = ComboDetector->DetectKeyballCombo(CurrentlyPressedIndices);
+        if (CurrentlyPressedIndicesP1.Contains(Index)) return;
+        CurrentlyPressedIndicesP1.Add(Index);
+
+        FKeyballComboResult KeyballCombo;
+        if (ComboDetector)
+        {
+            KeyballCombo = ComboDetector->DetectKeyballCombo(CurrentlyPressedIndicesP1);
+        }
+        if (Keyboard)
+        {
+            Keyboard->OnKeyPressed(Index, CurrentlyPressedIndicesP1, KeyballCombo);
+        }
     }
-
-    if (Keyboard)
+    else if (Player == 2)
     {
-        Keyboard->OnKeyPressed(Index, CurrentlyPressedIndices, KeyballCombo);
+        if (CurrentlyPressedIndicesP2.Contains(Index)) return;
+        CurrentlyPressedIndicesP2.Add(Index);
+
+        FKeyballComboResult KeyballCombo;
+        if (ComboDetector)
+        {
+            KeyballCombo = ComboDetector->DetectKeyballCombo(CurrentlyPressedIndicesP2);
+        }
+        if (Keyboard)
+        {
+            Keyboard->OnKeyPressed(Index, CurrentlyPressedIndicesP2, KeyballCombo);
+        }
     }
 }
 
 void AKeyballPlayerController::OnAnyKeyReleased(FKey ReleasedKey)
 {
     int32 Index = GetIndexFromFKey(ReleasedKey);
-    if (Index < 0 || !CurrentlyPressedIndices.Contains(Index)) return;
+    int32 Player = GetPlayerForIndex(Index);
+    if (Index < 0) return;
 
-    CurrentlyPressedIndices.Remove(Index);
-
-    if (Keyboard)
+    if (Player == 1)
     {
-        Keyboard->OnKeyReleased(Index, CurrentlyPressedIndices);
+        CurrentlyPressedIndicesP1.Remove(Index);
+        if (Keyboard)
+        {
+            Keyboard->OnKeyReleased(Index, CurrentlyPressedIndicesP1);
+        }
+    }
+    else if (Player == 2)
+    {
+        CurrentlyPressedIndicesP2.Remove(Index);
+        if (Keyboard)
+        {
+            Keyboard->OnKeyReleased(Index, CurrentlyPressedIndicesP2);
+        }
     }
 }
 
@@ -109,4 +139,10 @@ void AKeyballPlayerController::SetupInputComponent()
 {
     Super::SetupInputComponent();
     // TODO: Bind input if needed
+}
+
+int32 AKeyballPlayerController::GetPlayerForIndex(int32 Index) const
+{
+    if (Index < 0 || Index > 39) return -1;
+    return (Index % 10 <= 4) ? 1 : 2;
 }
