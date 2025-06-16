@@ -42,6 +42,16 @@ public:
     UPROPERTY(BlueprintReadWrite, VisibleAnywhere)
     UStaticMeshComponent* StaticMeshForOutlineX;
 
+    // material for main mesh
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Keyball|Visuals")
+    UMaterialInterface* MainMaterial;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Keyball|Visuals")
+    UMaterialInstanceDynamic* MainMID;
+
+    // material for outline
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Keyball|Visuals")
     UMaterialInterface* OutlineMaterial;
 

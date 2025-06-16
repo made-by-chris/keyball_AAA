@@ -36,6 +36,11 @@ void AKeyballKey::BeginPlay()
     // TransformState.BaseTransform = GetActorTransform();
     TransformState.LocalTransform = FTransform::Identity;
 
+    MainMID = StaticMeshX->CreateDynamicMaterialInstance(0, MainMaterial);
+    StaticMeshX->SetMaterial(0, MainMID);
+    UpdateOutline(CurrentState);
+
+
     if (StaticMeshForOutlineX && OutlineMaterial)
     {
         OutlineMID = StaticMeshForOutlineX->CreateDynamicMaterialInstance(0, OutlineMaterial);
