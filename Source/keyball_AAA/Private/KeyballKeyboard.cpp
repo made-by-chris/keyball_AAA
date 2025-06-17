@@ -308,13 +308,30 @@ void AKeyballKeyboard::ApplyTiltCombo(const FKeyballComboResult& Combo)
 
     if (AxisKeys.Num() < 2) return;
 
-    int32 PivotIndex = Combo.KeysIndex[0];
+    // Determine anchor (pivot) based on direction
+    int32 AnchorIndex = -1;
+    switch (Combo.Direction)
+    {
+        case EKeyballDirection::Right:
+        case EKeyballDirection::Down:
+        case EKeyballDirection::DownRight:
+        case EKeyballDirection::DownLeft:
+            AnchorIndex = AxisKeys[0]; // first key in axis
+            break;
+        case EKeyballDirection::Left:
+        case EKeyballDirection::Up:
+        case EKeyballDirection::UpLeft:
+        case EKeyballDirection::UpRight:
+            AnchorIndex = AxisKeys.Last(); // last key in axis
+            break;
+        default:
+            AnchorIndex = AxisKeys[0]; // fallback
+            break;
+    }
 
-    AKeyballKey* PivotKey = KeyMap.FindRef(PivotIndex);
-    AKeyballKey* EndKey   = KeyMap.FindRef(EndIndex);
-    if (!PivotKey || !EndKey) return;
-
-    FVector PivotWorld = PivotKey->GetActorLocation();
+    AKeyballKey* AnchorKey = KeyMap.FindRef(AnchorIndex);
+    if (!AnchorKey) return;
+    FVector PivotWorld = AnchorKey->GetActorLocation();
 
     // Use the combo's direction to determine tilt direction
     FVector AxisVector;
@@ -322,26 +339,25 @@ void AKeyballKeyboard::ApplyTiltCombo(const FKeyballComboResult& Combo)
     {
         case EKeyballDirection::Right:
         case EKeyballDirection::DownRight:
-            AxisVector = FVector::BackwardVector;  // Inverted from ForwardVector
+            AxisVector = FVector::BackwardVector;
             break;
         case EKeyballDirection::Left:
         case EKeyballDirection::DownLeft:
-            AxisVector = FVector::ForwardVector;   // Inverted from BackwardVector
+            AxisVector = FVector::ForwardVector;
             break;
         case EKeyballDirection::Down:
-            AxisVector = FVector::LeftVector;      // Inverted from RightVector
+            AxisVector = FVector::LeftVector;
             break;
         case EKeyballDirection::Up:
-            AxisVector = FVector::RightVector;     // Inverted from LeftVector
+            AxisVector = FVector::RightVector;
             break;
         default:
-            // For diagonal directions, use the closest cardinal direction
             if (Combo.Direction == EKeyballDirection::UpRight)
-                AxisVector = FVector::BackwardVector;  // Inverted from ForwardVector
+                AxisVector = FVector::BackwardVector;
             else if (Combo.Direction == EKeyballDirection::UpLeft)
-                AxisVector = FVector::ForwardVector;   // Inverted from BackwardVector
+                AxisVector = FVector::ForwardVector;
             else
-                AxisVector = FVector::LeftVector;      // Inverted from RightVector
+                AxisVector = FVector::LeftVector;
             break;
     }
 
@@ -349,7 +365,6 @@ void AKeyballKeyboard::ApplyTiltCombo(const FKeyballComboResult& Combo)
     {
         AKeyballKey* Key = KeyMap[AxisKeys[i]];
         if (!Key) continue;
-
         Key->StartTilt(PivotWorld, AxisVector, 1.5f);
     }
 }
