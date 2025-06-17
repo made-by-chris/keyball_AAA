@@ -89,6 +89,8 @@ Less_Than_40Algo UKeyboardLoader::ParseLessThan40Algo(const FString& AlgoString)
     if (AlgoString == "Loop") return Less_Than_40Algo::Loop;
     if (AlgoString == "Halves") return Less_Than_40Algo::Halves;
     if (AlgoString == "HalvesRotated") return Less_Than_40Algo::HalvesRotated;
+    if (AlgoString == "Checkerboard") return Less_Than_40Algo::Checkerboard;
+    if (AlgoString == "CheckerboardPlusOne") return Less_Than_40Algo::CheckerboardPlusOne;
     if (AlgoString == "edgesThenCenter") return Less_Than_40Algo::edgesThenCenter;
     return Less_Than_40Algo::Loop;
 }

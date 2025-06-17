@@ -156,11 +156,13 @@ void UKeyball_Function_Library::GetKeysForKeyboard(const TArray<int32>& InKeyboa
                 break;
             }
 
-            default:
-                Data.Mesh = Config->staticMesh[0].LoadSynchronous();
-                break;
-            }
-            break;
+            case Less_Than_40Algo::Checkerboard:
+                // for the first row 0,1,0,1,0 etc.
+                // for the second row 1,0,1,0,1 etc.
+                // for the third row 0,1,0,1,0 etc.
+                // for the fourth row 1,0,1,0,1 etc.
+                
+                
         }
 
         default:

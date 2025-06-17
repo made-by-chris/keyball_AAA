@@ -1,5 +1,18 @@
 [
 	{
+		"name": "nuchiclet",
+		"staticMesh": [
+			"/Game/Keys/nuchiclet/nuchiclet-0.nuchiclet-0",
+			"/Game/Keys/nuchiclet/nuchiclet-1.nuchiclet-1",
+			"/Game/Keys/nuchiclet/nuchiclet-2.nuchiclet-2"
+		],
+		"status": "Free",
+		"active": false,
+		"keyboardType": "LessThan40",
+		"displayScale": 0.5,
+		"LessThan40Algo": "loop"
+	},
+	{
 		"name": "tabula",
 		"staticMesh": [
 			"/Game/Keys/topleft.topleft",
