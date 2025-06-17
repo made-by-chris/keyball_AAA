@@ -19,81 +19,6 @@
 		"LessThan40Algo": "edgesThenCenter"
 	},
 	{
-		"name": "velum v1",
-		"staticMesh": [
-			"/Game/Keys/topleft.topleft",
-			"/Game/Keys/topright.topright",
-			"/Game/Keys/bottomright.bottomright",
-			"/Game/Keys/bottomleft.bottomleft",
-			"/Game/Keys/bottom.bottom",
-			"/Game/Keys/right.right",
-			"/Game/Keys/top.top",
-			"/Game/Keys/left.left",
-			"/Game/Keys/velumCenter2.velumCenter2"
-		],
-		"status": "Free",
-		"active": false,
-		"keyboardType": "LessThan40",
-		"displayScale": 0.5,
-		"LessThan40Algo": "edgesThenCenter"
-	},
-	{
-		"name": "sine",
-		"staticMesh": [
-			"/Game/Keys/sine1.sine1",
-			"/Game/Keys/sine2.sine2"
-		],
-		"status": "Free",
-		"active": false,
-		"keyboardType": "LessThan40",
-		"displayScale": 1,
-		"LessThan40Algo": "Loop"
-	},
-	{
-		"name": "saw",
-		"staticMesh": [
-			"/Game/Keys/sawleft.sawleft"
-		],
-		"status": "Free",
-		"active": false,
-		"keyboardType": "LessThan40",
-		"displayScale": 1,
-		"LessThan40Algo": "HalvesRotated"
-	},
-	{
-		"name": "diamond",
-		"staticMesh": [
-			"/Game/Keys/diamond.diamond"
-		],
-		"status": "Locked",
-		"active": false,
-		"keyboardType": "LessThan40",
-		"displayScale": 1,
-		"LessThan40Algo": "Loop"
-	},
-	{
-		"name": "regular",
-		"staticMesh": [
-			"/Game/Keys/realisticKeyCap.realisticKeyCap"
-		],
-		"status": "Free",
-		"active": false,
-		"keyboardType": "LessThan40",
-		"displayScale": 1,
-		"LessThan40Algo": "Loop"
-	},
-	{
-		"name": "nubs",
-		"staticMesh": [
-			"/Game/Keys/nubs.nubs"
-		],
-		"status": "Free",
-		"active": false,
-		"keyboardType": "LessThan40",
-		"displayScale": 1,
-		"LessThan40Algo": "Loop"
-	},
-	{
 		"name": "vw-1",
 		"staticMesh": [
 			"/Game/Keys/vw-1/vw_1_0.vw_1_0",
@@ -140,6 +65,17 @@
 		"status": "Locked",
 		"active": false,
 		"keyboardType": "Regular40",
+		"displayScale": 1,
+		"LessThan40Algo": "Loop"
+	},
+	{
+		"name": "diamond",
+		"staticMesh": [
+			"/Game/Keys/diamond.diamond"
+		],
+		"status": "Locked",
+		"active": false,
+		"keyboardType": "LessThan40",
 		"displayScale": 1,
 		"LessThan40Algo": "Loop"
 	},
@@ -192,5 +128,70 @@
 		"keyboardType": "Regular40",
 		"displayScale": 2,
 		"LessThan40Algo": "Loop"
+	},
+	{
+		"name": "regular",
+		"staticMesh": [
+			"/Game/Keys/realisticKeyCap.realisticKeyCap"
+		],
+		"status": "Free",
+		"active": false,
+		"keyboardType": "LessThan40",
+		"displayScale": 1,
+		"LessThan40Algo": "Loop"
+	},
+	{
+		"name": "nubs",
+		"staticMesh": [
+			"/Game/Keys/nubs.nubs"
+		],
+		"status": "Free",
+		"active": false,
+		"keyboardType": "LessThan40",
+		"displayScale": 1,
+		"LessThan40Algo": "Loop"
+	},
+	
+	{
+		"name": "velum v1",
+		"staticMesh": [
+			"/Game/Keys/topleft.topleft",
+			"/Game/Keys/topright.topright",
+			"/Game/Keys/bottomright.bottomright",
+			"/Game/Keys/bottomleft.bottomleft",
+			"/Game/Keys/bottom.bottom",
+			"/Game/Keys/right.right",
+			"/Game/Keys/top.top",
+			"/Game/Keys/left.left",
+			"/Game/Keys/velumCenter2.velumCenter2"
+		],
+		"status": "Free",
+		"active": false,
+		"keyboardType": "LessThan40",
+		"displayScale": 0.5,
+		"LessThan40Algo": "edgesThenCenter"
+	},
+	{
+		"name": "sine",
+		"staticMesh": [
+			"/Game/Keys/sine1.sine1",
+			"/Game/Keys/sine2.sine2"
+		],
+		"status": "Free",
+		"active": false,
+		"keyboardType": "LessThan40",
+		"displayScale": 1,
+		"LessThan40Algo": "Loop"
+	},
+	{
+		"name": "saw",
+		"staticMesh": [
+			"/Game/Keys/sawleft.sawleft"
+		],
+		"status": "Free",
+		"active": false,
+		"keyboardType": "LessThan40",
+		"displayScale": 1,
+		"LessThan40Algo": "HalvesRotated"
 	}
 ]

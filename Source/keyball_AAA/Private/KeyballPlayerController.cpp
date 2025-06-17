@@ -58,11 +58,11 @@ void AKeyballPlayerController::OnAnyKeyPressed(FKey PressedKey)
     if (PressedKey == EKeys::RightShift || PressedKey == EKeys::Delete)
         rightMagic = true;
 
-    int32 Player = GetPlayerForIndex(Index);
+    int32 PlayerIndex = GetPlayerForIndex(Index);
     float CurrentTime = GetWorld()->GetTimeSeconds();
     bool isDoubleTap = false;
 
-    if (Player == 1)
+    if (PlayerIndex == 1)
     {
         if (CurrentlyPressedIndicesP1.Contains(Index)) return;
         float* LastTime = LastPressTimeP1.Find(Index);
@@ -80,7 +80,7 @@ void AKeyballPlayerController::OnAnyKeyPressed(FKey PressedKey)
             Keyboard->OnKeyPressed(Index, CurrentlyPressedIndicesP1, KeyballCombo, leftMagic, rightMagic, isDoubleTap);
         }
     }
-    else if (Player == 2)
+    else if (PlayerIndex == 2)
     {
         if (CurrentlyPressedIndicesP2.Contains(Index)) return;
         float* LastTime = LastPressTimeP2.Find(Index);
@@ -103,7 +103,7 @@ void AKeyballPlayerController::OnAnyKeyPressed(FKey PressedKey)
 void AKeyballPlayerController::OnAnyKeyReleased(FKey ReleasedKey)
 {
     int32 Index = GetIndexFromFKey(ReleasedKey);
-    int32 Player = GetPlayerForIndex(Index);
+    int32 PlayerIndex = GetPlayerForIndex(Index);
     if (Index < 0) return;
 
     // Magic key logic
@@ -112,7 +112,7 @@ void AKeyballPlayerController::OnAnyKeyReleased(FKey ReleasedKey)
     if (ReleasedKey == EKeys::RightShift || ReleasedKey == EKeys::Delete)
         rightMagic = false;
 
-    if (Player == 1)
+    if (PlayerIndex == 1)
     {
         CurrentlyPressedIndicesP1.Remove(Index);
         if (Keyboard)
@@ -120,7 +120,7 @@ void AKeyballPlayerController::OnAnyKeyReleased(FKey ReleasedKey)
             Keyboard->OnKeyReleased(Index, CurrentlyPressedIndicesP1);
         }
     }
-    else if (Player == 2)
+    else if (PlayerIndex == 2)
     {
         CurrentlyPressedIndicesP2.Remove(Index);
         if (Keyboard)

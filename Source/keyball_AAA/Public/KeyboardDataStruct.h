@@ -27,7 +27,9 @@ enum class Less_Than_40Algo : uint8
     Loop,
     Halves,
     HalvesRotated,
-    edgesThenCenter
+    edgesThenCenter,
+    Checkerboard,
+    CheckerboardPlusOne
 };
 
 USTRUCT(BlueprintType)

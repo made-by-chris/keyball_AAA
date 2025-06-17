@@ -200,6 +200,10 @@ EKeyballDirection UKeyballComboDetector::GetDirection(int32 From, int32 To)
     int32 RowDiff = (To / 10) - (From / 10);
     int32 ColDiff = (To % 10) - (From % 10);
 
+    // Normalize the direction vector to handle larger distances
+    if (RowDiff != 0) RowDiff = RowDiff > 0 ? 1 : -1;
+    if (ColDiff != 0) ColDiff = ColDiff > 0 ? 1 : -1;
+
     if (RowDiff == -1 && ColDiff == 0) return EKeyballDirection::Up;
     if (RowDiff == 1 && ColDiff == 0) return EKeyballDirection::Down;
     if (RowDiff == 0 && ColDiff == -1) return EKeyballDirection::Left;

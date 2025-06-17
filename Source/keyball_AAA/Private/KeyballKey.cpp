@@ -15,6 +15,13 @@ AKeyballKey::AKeyballKey()
     CurrentLocalZOffset = 0.0f;
     MaxLocalZOffset = 200.0f;
 
+    bSharedZActive = false;
+    SharedZTimeElapsed = 0.f;
+    SharedZDuration = 0.f;
+    SharedZStart = 0.f;
+    SharedZTarget = 0.f;
+    
+
     RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 
     SharedTransformComponent = CreateDefaultSubobject<USceneComponent>(TEXT("SharedTransform"));
@@ -22,10 +29,14 @@ AKeyballKey::AKeyballKey()
 
     StaticMeshX = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshX"));
     StaticMeshX->SetupAttachment(SharedTransformComponent);
+    StaticMeshX->SetCollisionProfileName(TEXT("BlockAll")); // Enable collision for the main mesh
+    StaticMeshX->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+    StaticMeshX->SetCollisionObjectType(ECC_WorldStatic);
 
     StaticMeshForOutlineX = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshForOutlineX"));
     StaticMeshForOutlineX->SetupAttachment(StaticMeshX);
     StaticMeshForOutlineX->SetWorldScale3D(FVector(1.1f));
+    StaticMeshForOutlineX->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 }
 
@@ -55,6 +66,20 @@ void AKeyballKey::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
     UpdateKeyAnimation(DeltaTime);
+    if (bSharedZActive)
+    {
+        SharedZTimeElapsed += DeltaTime;
+        float t = FMath::Clamp(SharedZTimeElapsed / SharedZDuration, 0.f, 1.f);
+        float Z = FMath::Lerp(SharedZStart, SharedZTarget, t);
+        SharedTransformComponent->SetRelativeLocation(FVector(0, 0, Z));
+
+        if (SharedZTimeElapsed >= SharedZDuration)
+        {
+            bSharedZActive = false;
+            SharedTransformComponent->SetRelativeLocation(FVector::ZeroVector);
+        }
+    }
+
 }
 
 void AKeyballKey::StartPressAnimation(bool isDoubleTap, bool magicActive)
@@ -136,6 +161,31 @@ void AKeyballKey::UpdateKeyAnimation(float DeltaTime)
     {
         StaticMeshX->SetRelativeTransform(TransformState.LocalTransform);
     }
+
+    if (bTiltActive)
+    {
+        TiltTimeElapsed += DeltaTime;
+        float t = TiltTimeElapsed / TiltDuration;
+        t = FMath::Clamp(t, 0.f, 1.f);
+
+        float Angle = FMath::Sin(t * PI) * TiltMaxAngle; // Up and down once
+
+        // Rotation: around TiltPivot and TiltAxis
+        FVector WorldLocation = GetActorLocation(); // base position of key
+        FVector LocalPivotOffset = TiltPivot - WorldLocation;
+
+        FTransform T1 = FTransform(FVector(-LocalPivotOffset));
+        FTransform R = FTransform(FQuat(TiltAxis, FMath::DegreesToRadians(Angle)));
+        FTransform T2 = FTransform(FVector(LocalPivotOffset));
+
+        SharedTransformComponent->SetRelativeTransform(T2 * R * T1);
+
+        if (TiltTimeElapsed >= TiltDuration)
+        {
+            StopTilt();
+        }
+    }
+
 }
 
 
@@ -239,4 +289,30 @@ void AKeyballKey::StopWave()
     bWaveActive = false;
     WaveTimeElapsed = 0.f;
     SharedTransformComponent->SetRelativeLocation(FVector::ZeroVector);
+}
+
+
+void AKeyballKey::StartSharedOffsetZ(float TargetZ, float Duration)
+{
+    bSharedZActive = true;
+    SharedZTimeElapsed = 0.f;
+    SharedZDuration = Duration;
+    SharedZStart = SharedTransformComponent->GetRelativeLocation().Z;
+    SharedZTarget = TargetZ;
+}
+
+void AKeyballKey::StartTilt(const FVector& InPivot, const FVector& InAxis, float Duration)
+{
+    TiltPivot = InPivot;
+    TiltAxis = InAxis.GetSafeNormal();
+    TiltTimeElapsed = 0.f;
+    TiltDuration = Duration;
+    bTiltActive = true;
+}
+
+void AKeyballKey::StopTilt()
+{
+    bTiltActive = false;
+    TiltTimeElapsed = 0.f;
+    SharedTransformComponent->SetRelativeTransform(FTransform::Identity);
 }

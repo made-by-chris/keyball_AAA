@@ -100,11 +100,33 @@ public:
     void StartWave(float InPhaseOffset);
     void StopWave();
 
+    bool bSharedZActive = false;
+    float SharedZTimeElapsed = 0.f;
+    float SharedZDuration = 0.f;
+    float SharedZStart = 0.f;
+    float SharedZTarget = 0.f;
+
+    void StartSharedOffsetZ(float TargetZ, float Duration);
+    void StartTilt(const FVector& InPivot, const FVector& InAxis, float Duration = 1.5f);
+    void StopTilt();
+
+
+
+
+    // Tilt animation
+    bool bTiltActive = false;
+    float TiltTimeElapsed = 0.f;
+    float TiltDuration = 1.5f;
+    float TiltMaxAngle = 20.f; // degrees
+
+    FVector TiltPivot = FVector::ZeroVector;
+    FVector TiltAxis = FVector::RightVector; // defaults to horizontal row
+
+
+
+
     // void StartRipple();
     // void StopRipple();
-
-    // void StartTilt();
-    // void StopTilt();
 
     // void StartDiagonal();
     // void StopDiagonal();

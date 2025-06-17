@@ -139,6 +139,11 @@ void AKeyballKeyboard::OnKeyReleased(int32 ReleasedIndex, const TArray<int32>& R
 
 void AKeyballKeyboard::ApplyComboEffect(const FKeyballComboResult& Combo)
 {
+    GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("ApplyComboEffect: %s"), 
+        *UEnum::GetValueAsString(Combo.MoveType)));
+    FString ComboIndicesString = FString::Printf(TEXT("Combo indices: %d, %d, %s"), Combo.KeysIndex[0], Combo.KeysIndex[1], *UEnum::GetValueAsString(Combo.Direction));
+    GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, ComboIndicesString);    
+
     switch (Combo.MoveType)
     {
         case EKeyballMoveType::Whack:
@@ -149,6 +154,9 @@ void AKeyballKeyboard::ApplyComboEffect(const FKeyballComboResult& Combo)
             break;
         case EKeyballMoveType::Wave:
             ApplyWaveCombo(Combo);
+            break;
+        case EKeyballMoveType::Tilt:
+            ApplyTiltCombo(Combo);
             break;
 
         // Future cases:
@@ -267,3 +275,82 @@ void AKeyballKeyboard::ApplyWaveCombo(const FKeyballComboResult& Combo)
         Key->StartWave(PhaseOffset);
     }
 }
+
+void AKeyballKeyboard::ApplyTiltCombo(const FKeyballComboResult& Combo)
+{
+    if (Combo.KeysIndex.Num() < 2) return;
+
+    int32 StartIndex = Combo.KeysIndex[0];
+    int32 EndIndex = Combo.KeysIndex.Last();
+
+    bool bIsHorizontal = FMath::Abs(EndIndex - StartIndex) <= 4;
+
+    TArray<int32> AxisKeys;
+
+    if (bIsHorizontal)
+    {
+        int32 RowStart = StartIndex / 10 * 10;
+        for (int32 i = 0; i < 10; ++i)
+        {
+            int32 Index = RowStart + i;
+            if (KeyMap.Contains(Index)) AxisKeys.Add(Index);
+        }
+    }
+    else
+    {
+        int32 Col = StartIndex % 10;
+        for (int32 r = 0; r < 4; ++r)
+        {
+            int32 Index = r * 10 + Col;
+            if (KeyMap.Contains(Index)) AxisKeys.Add(Index);
+        }
+    }
+
+    if (AxisKeys.Num() < 2) return;
+
+    int32 PivotIndex = Combo.KeysIndex[0];
+
+    AKeyballKey* PivotKey = KeyMap.FindRef(PivotIndex);
+    AKeyballKey* EndKey   = KeyMap.FindRef(EndIndex);
+    if (!PivotKey || !EndKey) return;
+
+    FVector PivotWorld = PivotKey->GetActorLocation();
+
+    // Use the combo's direction to determine tilt direction
+    FVector AxisVector;
+    switch (Combo.Direction)
+    {
+        case EKeyballDirection::Right:
+        case EKeyballDirection::DownRight:
+            AxisVector = FVector::BackwardVector;  // Inverted from ForwardVector
+            break;
+        case EKeyballDirection::Left:
+        case EKeyballDirection::DownLeft:
+            AxisVector = FVector::ForwardVector;   // Inverted from BackwardVector
+            break;
+        case EKeyballDirection::Down:
+            AxisVector = FVector::LeftVector;      // Inverted from RightVector
+            break;
+        case EKeyballDirection::Up:
+            AxisVector = FVector::RightVector;     // Inverted from LeftVector
+            break;
+        default:
+            // For diagonal directions, use the closest cardinal direction
+            if (Combo.Direction == EKeyballDirection::UpRight)
+                AxisVector = FVector::BackwardVector;  // Inverted from ForwardVector
+            else if (Combo.Direction == EKeyballDirection::UpLeft)
+                AxisVector = FVector::ForwardVector;   // Inverted from BackwardVector
+            else
+                AxisVector = FVector::LeftVector;      // Inverted from RightVector
+            break;
+    }
+
+    for (int32 i = 0; i < AxisKeys.Num(); ++i)
+    {
+        AKeyballKey* Key = KeyMap[AxisKeys[i]];
+        if (!Key) continue;
+
+        Key->StartTilt(PivotWorld, AxisVector, 1.5f);
+    }
+}
+

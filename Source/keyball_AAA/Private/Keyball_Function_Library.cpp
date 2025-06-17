@@ -155,11 +155,19 @@ void UKeyball_Function_Library::GetKeysForKeyboard(const TArray<int32>& InKeyboa
                 Data.Mesh = Config->staticMesh.IsValidIndex(idx) ? Config->staticMesh[idx].LoadSynchronous() : nullptr;
                 break;
             }
-
-            default:
-                Data.Mesh = Config->staticMesh[0].LoadSynchronous();
+            case Less_Than_40Algo::Checkerboard:
+            {
+                int idx = Row % 2 == 0 ? Col % 2 == 0 ? 0 : 1 : Col % 2 == 0 ? 1 : 0;
+                Data.Mesh = Config->staticMesh.IsValidIndex(idx) ? Config->staticMesh[idx].LoadSynchronous() : nullptr;
                 break;
             }
+            case Less_Than_40Algo::CheckerboardPlusOne:
+            {
+                int idx = Row % 2 == 0 ? Col % 2 == 0 ? 1 : 0 : Col % 2 == 0 ? 0 : 1;
+                Data.Mesh = Config->staticMesh.IsValidIndex(idx) ? Config->staticMesh[idx].LoadSynchronous() : nullptr;
+                break;
+            }
+            } // End of Less_Than_40Algo switch
             break;
         }
 

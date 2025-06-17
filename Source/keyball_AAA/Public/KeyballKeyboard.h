@@ -69,7 +69,15 @@ protected:
     FVector GetWhackRotationAxis(EKeyballDirection Direction) const;
     void ApplyStairsCombo(const FKeyballComboResult& Combo);
     void ApplyWaveCombo(const FKeyballComboResult& Combo);
+    void ApplyTiltCombo(const FKeyballComboResult& Combo);
+    
+    bool bSharedZActive = false;
+    float SharedZTimeElapsed = 0.f;
+    float SharedZDuration = 0.f;
+    float SharedZStart = 0.f;
+    float SharedZTarget = 0.f;
 
+    void StartSharedOffsetZ(float TargetZ, float Duration);
     // void ApplyRippleCombo(const FKeyballComboResult& Combo);
     // void ApplyTiltCombo(const FKeyballComboResult& Combo);
     // void ApplyDiagonalCombo(const FKeyballComboResult& Combo);
