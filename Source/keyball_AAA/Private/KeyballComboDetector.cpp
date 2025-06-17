@@ -5,6 +5,14 @@
 
 FKeyballComboResult UKeyballComboDetector::DetectKeyballCombo(const TArray<int32>& PressedIndices)
 {
+    // log the pressed indices
+    FString PressedIndicesString;
+    for (int32 Index : PressedIndices)
+    {
+        PressedIndicesString += FString::Printf(TEXT("%d "), Index);
+    }
+    GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, PressedIndicesString);
+
     FKeyballComboResult Result;
 
     // Stairs Detection (3 keys in a contiguous path)
@@ -71,7 +79,12 @@ FKeyballComboResult UKeyballComboDetector::DetectKeyballCombo(const TArray<int32
                 {
                     Result.MoveType = EKeyballMoveType::Wave;
                     Result.KeysIndex = {A, D, E};
-                    Result.Direction = GetDirection(A, E);
+                    int32 IndexA = PressedIndices.Find(A);
+                    int32 IndexE = PressedIndices.Find(E);
+                    if (IndexA != INDEX_NONE && IndexE != INDEX_NONE && IndexA > IndexE)
+                        Result.Direction = GetDirection(E, A);
+                    else
+                        Result.Direction = GetDirection(A, E);
                     Result.bOverBorder = IsOverBorder(A, D) || IsOverBorder(D, E);
                     if (!Result.bOverBorder) return Result;
                 }
@@ -84,7 +97,12 @@ FKeyballComboResult UKeyballComboDetector::DetectKeyballCombo(const TArray<int32
                 {
                     Result.MoveType = EKeyballMoveType::Ripple;
                     Result.KeysIndex = {A, B, E};
-                    Result.Direction = GetDirection(A, E);
+                    int32 IndexA = PressedIndices.Find(A);
+                    int32 IndexE = PressedIndices.Find(E);
+                    if (IndexA != INDEX_NONE && IndexE != INDEX_NONE && IndexA > IndexE)
+                        Result.Direction = GetDirection(E, A);
+                    else
+                        Result.Direction = GetDirection(A, E);
                     Result.bOverBorder = IsOverBorder(A, B) || IsOverBorder(B, E);
                     if (!Result.bOverBorder) return Result;
                 }
@@ -97,7 +115,12 @@ FKeyballComboResult UKeyballComboDetector::DetectKeyballCombo(const TArray<int32
                 {
                     Result.MoveType = EKeyballMoveType::Tilt;
                     Result.KeysIndex = {A, E};
-                    Result.Direction = GetDirection(A, E);
+                    int32 IndexA = PressedIndices.Find(A);
+                    int32 IndexE = PressedIndices.Find(E);
+                    if (IndexA != INDEX_NONE && IndexE != INDEX_NONE && IndexA > IndexE)
+                        Result.Direction = GetDirection(E, A);
+                    else
+                        Result.Direction = GetDirection(A, E);
                     Result.bOverBorder = IsOverBorder(A, E);
                     if (!Result.bOverBorder) return Result;
                 }
@@ -113,7 +136,12 @@ FKeyballComboResult UKeyballComboDetector::DetectKeyballCombo(const TArray<int32
                 {
                     Result.MoveType = EKeyballMoveType::Wave;
                     Result.KeysIndex = {A, C, D};
-                    Result.Direction = GetDirection(A, D);
+                    int32 IndexA = PressedIndices.Find(A);
+                    int32 IndexD = PressedIndices.Find(D);
+                    if (IndexA != INDEX_NONE && IndexD != INDEX_NONE && IndexA > IndexD)
+                        Result.Direction = GetDirection(D, A);
+                    else
+                        Result.Direction = GetDirection(A, D);
                     Result.bOverBorder = IsOverBorder(A, C) || IsOverBorder(C, D);
                     if (!Result.bOverBorder) return Result;
                 }
@@ -126,7 +154,12 @@ FKeyballComboResult UKeyballComboDetector::DetectKeyballCombo(const TArray<int32
                 {
                     Result.MoveType = EKeyballMoveType::Ripple;
                     Result.KeysIndex = {A, B, D};
-                    Result.Direction = GetDirection(A, D);
+                    int32 IndexA = PressedIndices.Find(A);
+                    int32 IndexD = PressedIndices.Find(D);
+                    if (IndexA != INDEX_NONE && IndexD != INDEX_NONE && IndexA > IndexD)
+                        Result.Direction = GetDirection(D, A);
+                    else
+                        Result.Direction = GetDirection(A, D);
                     Result.bOverBorder = IsOverBorder(A, B) || IsOverBorder(B, D);
                     if (!Result.bOverBorder) return Result;
                 }
@@ -139,7 +172,12 @@ FKeyballComboResult UKeyballComboDetector::DetectKeyballCombo(const TArray<int32
                 {
                     Result.MoveType = EKeyballMoveType::Tilt;
                     Result.KeysIndex = {A, D};
-                    Result.Direction = GetDirection(A, D);
+                    int32 IndexA = PressedIndices.Find(A);
+                    int32 IndexD = PressedIndices.Find(D);
+                    if (IndexA != INDEX_NONE && IndexD != INDEX_NONE && IndexA > IndexD)
+                        Result.Direction = GetDirection(D, A);
+                    else
+                        Result.Direction = GetDirection(A, D);
                     Result.bOverBorder = IsOverBorder(A, D);
                     if (!Result.bOverBorder) return Result;
                 }
@@ -162,7 +200,12 @@ FKeyballComboResult UKeyballComboDetector::DetectKeyballCombo(const TArray<int32
                 if (IsOverBorder(i, i1) || IsOverBorder(i1, i2)) continue;
                 Result.MoveType = EKeyballMoveType::Diagonal;
                 Result.KeysIndex = {i, i1, i2};
-                Result.Direction = GetDirection(i, i2);
+                int32 IndexI = PressedIndices.Find(i);
+                int32 IndexI2 = PressedIndices.Find(i2);
+                if (IndexI != INDEX_NONE && IndexI2 != INDEX_NONE && IndexI > IndexI2)
+                    Result.Direction = GetDirection(i2, i);
+                else
+                    Result.Direction = GetDirection(i, i2);
                 Result.bOverBorder = false;
                 return Result;
             }
@@ -197,21 +240,34 @@ FKeyballComboResult UKeyballComboDetector::DetectKeyballCombo(const TArray<int32
 
 EKeyballDirection UKeyballComboDetector::GetDirection(int32 From, int32 To)
 {
-    int32 RowDiff = (To / 10) - (From / 10);
-    int32 ColDiff = (To % 10) - (From % 10);
 
-    // Normalize the direction vector to handle larger distances
-    if (RowDiff != 0) RowDiff = RowDiff > 0 ? 1 : -1;
-    if (ColDiff != 0) ColDiff = ColDiff > 0 ? 1 : -1;
+    GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, FString::Printf(TEXT("XXXXXX From: %d, To: %d"), From, To));
 
-    if (RowDiff == -1 && ColDiff == 0) return EKeyballDirection::Up;
-    if (RowDiff == 1 && ColDiff == 0) return EKeyballDirection::Down;
-    if (RowDiff == 0 && ColDiff == -1) return EKeyballDirection::Left;
-    if (RowDiff == 0 && ColDiff == 1) return EKeyballDirection::Right;
-    if (RowDiff == -1 && ColDiff == -1) return EKeyballDirection::UpLeft;
-    if (RowDiff == -1 && ColDiff == 1) return EKeyballDirection::UpRight;
-    if (RowDiff == 1 && ColDiff == -1) return EKeyballDirection::DownLeft;
-    if (RowDiff == 1 && ColDiff == 1) return EKeyballDirection::DownRight;
+
+    int32 RowFrom = From / 10, ColFrom = From % 10;
+    int32 RowTo = To / 10, ColTo = To % 10;
+    int32 RowDiff = RowTo - RowFrom;
+    int32 ColDiff = ColTo - ColFrom;
+
+
+
+    if (RowFrom == RowTo)
+    {
+        if (ColTo > ColFrom) return EKeyballDirection::Right;
+        if (ColTo < ColFrom) return EKeyballDirection::Left;
+    }
+    else if (ColFrom == ColTo)
+    {
+        if (RowTo > RowFrom) return EKeyballDirection::Down;
+        if (RowTo < RowFrom) return EKeyballDirection::Up;
+    }
+    else if (FMath::Abs(RowDiff) == FMath::Abs(ColDiff))
+    {
+        if (RowDiff < 0 && ColDiff > 0) return EKeyballDirection::UpRight;
+        if (RowDiff < 0 && ColDiff < 0) return EKeyballDirection::UpLeft;
+        if (RowDiff > 0 && ColDiff > 0) return EKeyballDirection::DownRight;
+        if (RowDiff > 0 && ColDiff < 0) return EKeyballDirection::DownLeft;
+    }
 
     return EKeyballDirection::None;
 }
