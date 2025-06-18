@@ -92,6 +92,7 @@ void AKeyballPlayerController::OnAnyKeyPressed(FKey PressedKey)
         if (ComboDetector)
         {
             KeyballCombo = ComboDetector->DetectKeyballCombo(CurrentlyPressedIndicesP2);
+            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Combo type: %s"), *UEnum::GetValueAsString(KeyballCombo.MoveType)));
         }
         if (Keyboard)
         {
