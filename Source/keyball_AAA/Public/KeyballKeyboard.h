@@ -92,6 +92,9 @@ protected:
     bool bDiagonalActive = false;
     float DiagonalEffectDuration = 6.f;
 
+    void ResetDiagonalEffect();
+    FTimerHandle DiagonalResetTimerHandle;
+
 };
 
 

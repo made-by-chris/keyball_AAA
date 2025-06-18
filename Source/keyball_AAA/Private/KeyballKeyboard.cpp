@@ -410,6 +410,26 @@ void AKeyballKeyboard::ApplyTiltCombo(const FKeyballComboResult& Combo)
     }
 }
 
+void AKeyballKeyboard::ResetDiagonalEffect()
+{
+    bDiagonalActive = false;
+    // Reset all affected keys to original Z
+    for (auto& Elem : DiagonalOriginalZ)
+    {
+        int32 Index = Elem.Key;
+        if (!KeyMap.Contains(Index)) continue;
+        AKeyballKey* Key = KeyMap[Index];
+        if (!Key) continue;
+        FTransform T = Key->GetActorTransform();
+        FVector Loc = T.GetLocation();
+        Loc.Z = Elem.Value;
+        T.SetLocation(Loc);
+        Key->SetActorTransform(T);
+    }
+    DiagonalOriginalZ.Empty();
+    DiagonalTargetZ.Empty();
+}
+
 void AKeyballKeyboard::ApplyDiagonalCombo(const FKeyballComboResult& Combo)
 {
     if (Combo.KeysIndex.Num() != 2) return;
@@ -430,6 +450,9 @@ void AKeyballKeyboard::ApplyDiagonalCombo(const FKeyballComboResult& Combo)
     DiagonalTargetZ.Empty();
     bDiagonalActive = true;
     DiagonalLerpTime = 0.f;
+
+    // Clear any previous timer
+    GetWorldTimerManager().ClearTimer(DiagonalResetTimerHandle);
 
     for (int32 Row = 0; Row < 4; ++Row)
     {
@@ -453,34 +476,12 @@ void AKeyballKeyboard::ApplyDiagonalCombo(const FKeyballComboResult& Combo)
     }
 
     // Set timer to turn off effect after DiagonalEffectDuration
-    GetWorldTimerManager().SetTimerForNextTick([this]() {
-        GetWorldTimerManager().SetTimer(
-            FTimerHandle(),
-            [this]() {
-                bDiagonalActive = false;
-                // Reset all affected keys to original Z
-                for (auto& Elem : DiagonalOriginalZ)
-                {
-                    int32 Index = Elem.Key;
-                    if (!KeyMap.Contains(Index)) continue;
-                    AKeyballKey* Key = KeyMap[Index];
-                    if (!Key) continue;
-                    FTransform T = Key->GetActorTransform();
-                    FVector Loc = T.GetLocation();
-                    Loc.Z = Elem.Value;
-                    T.SetLocation(Loc);
-                    Key->SetActorTransform(T);
-                }
-                DiagonalOriginalZ.Empty();
-                DiagonalTargetZ.Empty();
-            },
-            DiagonalEffectDuration, false);
-    });
+    GetWorldTimerManager().SetTimer(
+        DiagonalResetTimerHandle,
+        this,
+        &AKeyballKeyboard::ResetDiagonalEffect,
+        DiagonalEffectDuration,
+        false
+    );
 }
-
-TMap<int32, float> AKeyballKeyboard::DiagonalOriginalZ;
-TMap<int32, float> AKeyballKeyboard::DiagonalTargetZ;
-float AKeyballKeyboard::DiagonalLerpTime = 0.f;
-bool AKeyballKeyboard::bDiagonalActive = false;
-float AKeyballKeyboard::DiagonalEffectDuration = 6.f;
 
