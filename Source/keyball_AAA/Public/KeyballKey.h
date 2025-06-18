@@ -117,7 +117,7 @@ public:
     bool bTiltActive = false;
     float TiltTimeElapsed = 0.f;
     float TiltDuration = 1.5f;
-    float TiltMaxAngle = 20.f; // degrees
+    float TiltMaxAngle = 6.f; // degrees
 
     FVector TiltPivot = FVector::ZeroVector;
     FVector TiltAxis = FVector::RightVector; // defaults to horizontal row

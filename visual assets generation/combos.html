@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Combo Move Grid Renderer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 100vw;
+        }
+
+        .move-container {
+            display: inline-block;
+            margin: 10px;
+            text-align: center;
+        }
+
+        canvas {
+            border: 1px solid #ccc;
+            background: #fff;
+        }
+
+        button {
+            margin-top: 5px;
+            display: block;
+        }
+
+        #controls {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="controls">
+        <button id="downloadAll">Download All</button>
+    </div>
+    <div id="moves"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+    <script>
+        // Define moves with 4x4 state grids (0=blank,1=rounded square,2=doubletap,3=shift-press)
+        const moves = [
+
+            {
+                name: 'Raise', grid: [
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0]
+                ]
+            },
+            {
+                name: 'Strike', grid: [
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 2, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0]
+                ]
+            },
+            {
+                name: 'Whack', grid: [
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0],
+                    [0, 1, 0, 0, 0],
+                    [0, 0, 0, 0, 0]
+                ]
+            },
+            {
+                name: 'Stairs', grid: [
+                    [0, 0, 0, 1, 0],
+                    [0, 0, 1, 0, 0],
+                    [0, 1, 0, 0, 0],
+                    [0, 0, 0, 0, 0]
+                ]
+            },
+            {
+                name: 'Ripple', grid: [
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [1, 0, 1, 1, 0],
+                    [0, 0, 0, 0, 0]
+                ]
+            },
+            {
+                name: 'Wave', grid: [
+                    [0, 0, 0, 0, 0],
+                    [1, 1, 0, 1, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0]
+                ]
+            },
+            {
+                name: 'Tilt', grid: [
+                    [1, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [1, 0, 0, 0, 0, 0]
+                ]
+            },
+            {
+                name: 'Diagonal', grid: [
+                    [1, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 1]
+                ]
+            }
+        ];
+
+        const CELL_SIZE = 30;
+        const GRID_WIDTH = 5;
+        const GRID_HEIGHT = 4;
+
+        function roundRect(ctx, x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.lineTo(x + w - r, y);
+            ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+            ctx.lineTo(x + w, y + h - r);
+            ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+            ctx.lineTo(x + r, y + h);
+            ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+            ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function drawCell(ctx, row, col, state) {
+            const x = col * CELL_SIZE;
+            const y = row * CELL_SIZE;
+            switch (state) {
+                case 1: // rounded black square
+                    ctx.fillStyle = '#000';
+                    roundRect(ctx, x + 5, y + 5, CELL_SIZE - 10, CELL_SIZE - 10, 8);
+                    break;
+                case 2: // doubletap (two circles)
+                    ctx.fillStyle = '#000';
+                    const r = (CELL_SIZE - 20) / 2;
+                    ctx.beginPath();
+                    ctx.arc(x + CELL_SIZE / 2 - r / 2, y + CELL_SIZE / 2, r, 0, Math.PI * 2);
+                    ctx.arc(x + CELL_SIZE / 2 + r / 2, y + CELL_SIZE / 2, r, 0, Math.PI * 2);
+                    ctx.fill();
+                    break;
+                case 3: // shift-press (up arrow)
+                    ctx.fillStyle = '#000';
+                    ctx.beginPath();
+                    const midX = x + CELL_SIZE / 2;
+                    const topY = y + 10;
+                    ctx.moveTo(midX, topY);
+                    ctx.lineTo(midX + 10, y + CELL_SIZE - 10);
+                    ctx.lineTo(midX + 3, y + CELL_SIZE - 10);
+                    ctx.lineTo(midX + 3, y + CELL_SIZE - 30);
+                    ctx.lineTo(midX - 3, y + CELL_SIZE - 30);
+                    ctx.lineTo(midX - 3, y + CELL_SIZE - 10);
+                    ctx.lineTo(midX - 10, y + CELL_SIZE - 10);
+                    ctx.closePath();
+                    ctx.fill();
+                    break;
+                default:
+                    // blank
+                    break;
+            }
+            ctx.strokeStyle = '#ccc';
+            ctx.strokeRect(x, y, CELL_SIZE, CELL_SIZE);
+        }
+
+        function renderMoves() {
+            const container = document.getElementById('moves');
+            moves.forEach((move, idx) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'move-container';
+                const canvas = document.createElement('canvas');
+                canvas.width = CELL_SIZE * GRID_WIDTH;
+                canvas.height = CELL_SIZE * GRID_HEIGHT;
+                canvas.id = `canvas-${idx}`;
+                const ctx = canvas.getContext('2d');
+                move.grid.forEach((row, r) => row.forEach((cell, c) => drawCell(ctx, r, c, cell)));
+                const label = document.createElement('div');
+                label.textContent = move.name;
+                const btn = document.createElement('button');
+                btn.textContent = 'Download';
+                btn.onclick = () => downloadCanvas(canvas, `${move.name}.png`);
+                wrapper.appendChild(label);
+                wrapper.appendChild(canvas);
+                wrapper.appendChild(btn);
+                container.appendChild(wrapper);
+            });
+        }
+
+        function downloadCanvas(canvas, filename) {
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        document.getElementById('downloadAll').addEventListener('click', () => {
+            const zip = new JSZip();
+            moves.forEach((move, idx) => {
+                const canvas = document.getElementById(`canvas-${idx}`);
+                const dataURL = canvas.toDataURL('image/png');
+                const imgData = dataURL.split(',')[1];
+                zip.file(`${move.name}.png`, imgData, { base64: true });
+            });
+            zip.generateAsync({ type: 'blob' }).then(content => {
+                const link = document.createElement('a');
+                link.download = 'all_moves.zip';
+                link.href = URL.createObjectURL(content);
+                link.click();
+            });
+        });
+
+        // Initialize
+        renderMoves();
+    </script>
+</body>
+
+</html>
