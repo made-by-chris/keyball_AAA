@@ -4,6 +4,7 @@
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/StaticMeshComponent.h"
+#include "TimerManager.h"
 
 AKeyballKeyboard::AKeyballKeyboard()
 {
@@ -76,6 +77,26 @@ void AKeyballKeyboard::BeginPlay()
 void AKeyballKeyboard::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
+
+    if (bDiagonalActive)
+    {
+        DiagonalLerpTime += DeltaTime;
+        float Alpha = FMath::Clamp(DiagonalLerpTime / 1.0f, 0.f, 1.f); // 1s lerp duration
+        for (auto& Elem : DiagonalTargetZ)
+        {
+            int32 Index = Elem.Key;
+            float TargetZ = Elem.Value;
+            float StartZ = DiagonalOriginalZ.Contains(Index) ? DiagonalOriginalZ[Index] : 0.f;
+            if (!KeyMap.Contains(Index)) continue;
+            AKeyballKey* Key = KeyMap[Index];
+            if (!Key) continue;
+            FTransform T = Key->GetActorTransform();
+            FVector Loc = T.GetLocation();
+            Loc.Z = FMath::Lerp(StartZ, TargetZ, Alpha);
+            T.SetLocation(Loc);
+            Key->SetActorTransform(T);
+        }
+    }
 
     for (auto& Pair : ActiveKeys)
     {
@@ -158,6 +179,9 @@ void AKeyballKeyboard::ApplyComboEffect(const FKeyballComboResult& Combo)
             break;
         case EKeyballMoveType::Tilt:
             ApplyTiltCombo(Combo);
+            break;
+        case EKeyballMoveType::Diagonal:
+            ApplyDiagonalCombo(Combo);
             break;
 
         // Future cases:
@@ -385,4 +409,78 @@ void AKeyballKeyboard::ApplyTiltCombo(const FKeyballComboResult& Combo)
         Key->StartTilt(PivotWorld, AxisVector, 1.5f);
     }
 }
+
+void AKeyballKeyboard::ApplyDiagonalCombo(const FKeyballComboResult& Combo)
+{
+    if (Combo.KeysIndex.Num() != 2) return;
+    int32 Start = Combo.KeysIndex[0];
+    int32 End = Combo.KeysIndex[1];
+
+    int32 StartRow = Start / 10, StartCol = Start % 10;
+    int32 EndRow = End / 10, EndCol = End % 10;
+
+    int32 Section = (StartCol <= 4) ? 0 : 1;
+    int32 ColMin = (Section == 0) ? 0 : 5;
+    int32 ColMax = (Section == 0) ? 4 : 9;
+
+    int32 MaxDist = FMath::Max(FMath::Abs(EndRow - StartRow), FMath::Abs(EndCol - StartCol));
+    float StepHeight = 10.f;
+
+    DiagonalOriginalZ.Empty();
+    DiagonalTargetZ.Empty();
+    bDiagonalActive = true;
+    DiagonalLerpTime = 0.f;
+
+    for (int32 Row = 0; Row < 4; ++Row)
+    {
+        for (int32 Col = ColMin; Col <= ColMax; ++Col)
+        {
+            int32 Index = Row * 10 + Col;
+            if (!KeyMap.Contains(Index)) continue;
+            AKeyballKey* Key = KeyMap[Index];
+            if (!Key) continue;
+
+            int32 Dist = FMath::Max(FMath::Abs(EndRow - Row), FMath::Abs(EndCol - Col));
+            int32 Height = MaxDist - Dist;
+            Height = FMath::Clamp(Height, 0, MaxDist);
+            float Z = Height * StepHeight;
+
+            FTransform T = Key->GetActorTransform();
+            FVector Loc = T.GetLocation();
+            DiagonalOriginalZ.Add(Index, Loc.Z);
+            DiagonalTargetZ.Add(Index, Z);
+        }
+    }
+
+    // Set timer to turn off effect after DiagonalEffectDuration
+    GetWorldTimerManager().SetTimerForNextTick([this]() {
+        GetWorldTimerManager().SetTimer(
+            FTimerHandle(),
+            [this]() {
+                bDiagonalActive = false;
+                // Reset all affected keys to original Z
+                for (auto& Elem : DiagonalOriginalZ)
+                {
+                    int32 Index = Elem.Key;
+                    if (!KeyMap.Contains(Index)) continue;
+                    AKeyballKey* Key = KeyMap[Index];
+                    if (!Key) continue;
+                    FTransform T = Key->GetActorTransform();
+                    FVector Loc = T.GetLocation();
+                    Loc.Z = Elem.Value;
+                    T.SetLocation(Loc);
+                    Key->SetActorTransform(T);
+                }
+                DiagonalOriginalZ.Empty();
+                DiagonalTargetZ.Empty();
+            },
+            DiagonalEffectDuration, false);
+    });
+}
+
+TMap<int32, float> AKeyballKeyboard::DiagonalOriginalZ;
+TMap<int32, float> AKeyballKeyboard::DiagonalTargetZ;
+float AKeyballKeyboard::DiagonalLerpTime = 0.f;
+bool AKeyballKeyboard::bDiagonalActive = false;
+float AKeyballKeyboard::DiagonalEffectDuration = 6.f;
 

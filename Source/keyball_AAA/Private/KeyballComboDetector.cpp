@@ -15,6 +15,45 @@ FKeyballComboResult UKeyballComboDetector::DetectKeyballCombo(const TArray<int32
 
     FKeyballComboResult Result;
 
+    // Diagonal detection 0,34 
+    // left side diagonals are (0,34 - 34,0) (4,30 - 30,4)
+    // right side diagonals are (5,39 - 39,5) (35,9 - 9,35)
+    // go through pressedIndices in pairs and see if any are present
+    for (int32 i = 0; i < PressedIndices.Num() - 1; i++)
+    {
+        // log checking pair i and i+1
+        GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, FString::Printf(TEXT("Checking pair %d, %d"), PressedIndices[i], PressedIndices[i + 1]));
+        bool bGoodPair = false;
+        if ((PressedIndices[i] == 0 && PressedIndices[i + 1] == 34) || (PressedIndices[i] == 5 && PressedIndices[i + 1] == 39))
+        {
+            bGoodPair = true;
+            Result.Direction = EKeyballDirection::DownRight;
+        }
+        else if ((PressedIndices[i] == 34 && PressedIndices[i + 1] == 0) || (PressedIndices[i] == 39 && PressedIndices[i + 1] == 5))
+        {
+            bGoodPair = true;
+            Result.Direction = EKeyballDirection::UpLeft;
+        }
+        else if ((PressedIndices[i] == 4 && PressedIndices[i + 1] == 30) || (PressedIndices[i] == 9 && PressedIndices[i + 1] == 35))
+        {
+            bGoodPair = true;
+            Result.Direction = EKeyballDirection::DownLeft;
+        }
+        else if ((PressedIndices[i] == 30 && PressedIndices[i + 1] == 4) || (PressedIndices[i] == 35 && PressedIndices[i + 1] == 9))
+        {
+            bGoodPair = true;
+            Result.Direction = EKeyballDirection::UpRight;
+        }
+        if (bGoodPair)
+        {
+            Result.MoveType = EKeyballMoveType::Diagonal;
+            Result.KeysIndex = {PressedIndices[i], PressedIndices[i + 1]};
+            Result.bOverBorder = IsOverBorder(PressedIndices[i], PressedIndices[i + 1]);
+            return Result;
+        }
+    }
+
+
     // Stairs Detection (3 keys in a contiguous path)
     if (PressedIndices.Num() >= 3)
     {
@@ -181,33 +220,6 @@ FKeyballComboResult UKeyballComboDetector::DetectKeyballCombo(const TArray<int32
                     Result.bOverBorder = IsOverBorder(A, D);
                     if (!Result.bOverBorder) return Result;
                 }
-            }
-        }
-    }
-
-    // Diagonal combos
-    int32 Deltas[] = {11, -11, 9, -9};
-
-    for (int32 i : PressedIndices)
-    {
-        for (int Delta : Deltas)
-        {
-            int32 i1 = i + Delta;
-            int32 i2 = i + 2 * Delta;
-            if (i1 < 0 || i1 >= 40 || i2 < 0 || i2 >= 40) continue;
-            if (PressedSet.Contains(i1) && PressedSet.Contains(i2))
-            {
-                if (IsOverBorder(i, i1) || IsOverBorder(i1, i2)) continue;
-                Result.MoveType = EKeyballMoveType::Diagonal;
-                Result.KeysIndex = {i, i1, i2};
-                int32 IndexI = PressedIndices.Find(i);
-                int32 IndexI2 = PressedIndices.Find(i2);
-                if (IndexI != INDEX_NONE && IndexI2 != INDEX_NONE && IndexI > IndexI2)
-                    Result.Direction = GetDirection(i2, i);
-                else
-                    Result.Direction = GetDirection(i, i2);
-                Result.bOverBorder = false;
-                return Result;
             }
         }
     }

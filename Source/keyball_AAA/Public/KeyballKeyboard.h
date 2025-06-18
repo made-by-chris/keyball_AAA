@@ -72,6 +72,7 @@ protected:
     void ApplyStairsCombo(const FKeyballComboResult& Combo);
     void ApplyWaveCombo(const FKeyballComboResult& Combo);
     void ApplyTiltCombo(const FKeyballComboResult& Combo);
+    void ApplyDiagonalCombo(const FKeyballComboResult& Combo);
     
     bool bSharedZActive = false;
     float SharedZTimeElapsed = 0.f;
@@ -84,6 +85,12 @@ protected:
     // void ApplyTiltCombo(const FKeyballComboResult& Combo);
     // void ApplyDiagonalCombo(const FKeyballComboResult& Combo);
     // and later, seesaw, bowl, curl, conveyor force, catapult/"lob", etc.
+
+    TMap<int32, float> DiagonalOriginalZ;
+    TMap<int32, float> DiagonalTargetZ;
+    float DiagonalLerpTime = 0.f;
+    bool bDiagonalActive = false;
+    float DiagonalEffectDuration = 6.f;
 
 };
 

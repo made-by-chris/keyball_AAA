@@ -37,6 +37,7 @@
 <body>
     <div id="controls">
         <button id="downloadAll">Download All</button>
+        <button id="recordAnimation">Record Animation</button>
     </div>
     <div id="moves"></div>
 
@@ -286,7 +287,166 @@
             ctx.restore();
         }
 
-        function renderMoves() {
+        let recordResolve = null;
+        let isRecording = false;
+
+        function recordMoveAnimation(move, canvas, filename) {
+            return new Promise(async (resolve, reject) => {
+                let isRecordingMove = true;
+                // Prepare animation state for this move
+                const grids = move.grids || [move.grid];
+                let currentGridIndex = 0;
+                let tIndexMap = [];
+                let maxTIndex = -1;
+                function updateTIndexMapAndMaxTIndex(grid) {
+                    tIndexMap = [];
+                    maxTIndex = -1;
+                    grid.forEach((row, r) => {
+                        tIndexMap[r] = [];
+                        row.forEach((cell, c) => {
+                            let t = 0;
+                            if (Array.isArray(cell)) t = cell[0];
+                            if (t > maxTIndex) maxTIndex = t;
+                            tIndexMap[r][c] = t;
+                        });
+                    });
+                }
+                updateTIndexMapAndMaxTIndex(grids[currentGridIndex]);
+                let currentT = 0;
+                let fade = 0;
+                const FADE_DURATION = 400; // ms
+                let fadingOut = false;
+                let fadeOut = 1;
+                let direction = 1; // 1 for forward, -1 for backward
+                let pingPongCycle = 0;
+                let totalPingPongCycles = move.pingPong ? 2 : 1; // forward and backward = 2
+                let totalGrids = grids.length;
+                let finished = false;
+                const ctx = canvas.getContext('2d');
+                function animate() {
+                    // White background for recording
+                    ctx.save();
+                    ctx.globalAlpha = 1;
+                    ctx.fillStyle = '#fff';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.restore();
+                    // Draw header and grid (static background)
+                    drawHeaderIcons(ctx, move);
+                    drawGrid(ctx);
+                    const grid = grids[currentGridIndex];
+                    if (fadingOut) {
+                        // Fade out all cells
+                        grid.forEach((row, r) => {
+                            row.forEach((cell, c) => {
+                                let t = 0;
+                                if (Array.isArray(cell)) t = cell[0];
+                                if (t <= maxTIndex) {
+                                    drawCell(ctx, r, c, cell, fadeOut);
+                                }
+                            });
+                        });
+                        fadeOut -= 16 / FADE_DURATION;
+                        if (fadeOut > 0) {
+                            requestAnimationFrame(animate);
+                        } else {
+                            // After fade out, reset and go to next grid
+                            fadingOut = false;
+                            fadeOut = 1;
+                            if (move.pingPong) {
+                                direction *= -1; // Reverse direction
+                                if (direction === 1) {
+                                    pingPongCycle++;
+                                    if (pingPongCycle >= totalPingPongCycles && currentGridIndex === totalGrids - 1) {
+                                        finished = true;
+                                        isRecordingMove = false;
+                                        return resolve();
+                                    }
+                                    currentGridIndex = (currentGridIndex + 1) % grids.length;
+                                    updateTIndexMapAndMaxTIndex(grids[currentGridIndex]);
+                                    currentT = 0;
+                                } else {
+                                    // Start backward animation
+                                    currentT = maxTIndex;
+                                }
+                            } else {
+                                // Not ping-pong, just go to next grid
+                                if (currentGridIndex === totalGrids - 1) {
+                                    finished = true;
+                                    isRecordingMove = false;
+                                    return resolve();
+                                }
+                                direction = 1;
+                                currentGridIndex = (currentGridIndex + 1) % grids.length;
+                                updateTIndexMapAndMaxTIndex(grids[currentGridIndex]);
+                                currentT = 0;
+                            }
+                            fade = 0;
+                            setTimeout(() => {
+                                requestAnimationFrame(animate);
+                            }, 500);
+                        }
+                        return;
+                    }
+                    let animating = false;
+                    grid.forEach((row, r) => {
+                        row.forEach((cell, c) => {
+                            let t = 0, value = cell;
+                            if (Array.isArray(cell)) {
+                                t = cell[0];
+                                value = cell[1];
+                            }
+                            if ((direction === 1 && t < currentT) || (direction === -1 && t > currentT)) {
+                                drawCell(ctx, r, c, cell, 1);
+                            } else if (t === currentT) {
+                                animating = true;
+                                drawCell(ctx, r, c, cell, fade);
+                            }
+                        });
+                    });
+                    if (animating) {
+                        fade += 16 / FADE_DURATION;
+                        if (fade < 1) {
+                            requestAnimationFrame(animate);
+                        } else {
+                            fade = 1;
+                            moveNext();
+                        }
+                    }
+                }
+                function moveNext() {
+                    fade = 0;
+                    if (move.pingPong) {
+                        currentT += direction;
+                        if ((direction === 1 && currentT <= maxTIndex) || (direction === -1 && currentT >= 0)) {
+                            requestAnimationFrame(animate);
+                        } else {
+                            // Start fade out phase
+                            fadingOut = true;
+                            fadeOut = 1;
+                            setTimeout(() => {
+                                requestAnimationFrame(animate);
+                            }, 2000);
+                        }
+                    } else {
+                        currentT++;
+                        if (currentT <= maxTIndex) {
+                            requestAnimationFrame(animate);
+                        } else {
+                            // Start fade out phase
+                            fadingOut = true;
+                            fadeOut = 1;
+                            setTimeout(() => {
+                                requestAnimationFrame(animate);
+                            }, 2000);
+                        }
+                    }
+                }
+                // Start animation
+                requestAnimationFrame(animate);
+            });
+        }
+
+        function renderMoves(recordingOptions) {
             const container = document.getElementById('moves');
             container.innerHTML = '';
             moves.forEach((move, idx) => {
@@ -327,8 +487,21 @@
                 let fadingOut = false;
                 let fadeOut = 1;
                 let direction = 1; // 1 for forward, -1 for backward
+                let pingPongCycle = 0;
+                let totalPingPongCycles = move.pingPong ? 2 : 1; // forward and backward = 2
+                let totalGrids = grids.length;
+                let finished = false;
                 function animate() {
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    // White background for recording
+                    if (isRecording && idx === 0) {
+                        ctx.save();
+                        ctx.globalAlpha = 1;
+                        ctx.fillStyle = '#fff';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        ctx.restore();
+                    } else {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    }
                     // Draw header and grid (static background)
                     drawHeaderIcons(ctx, move);
                     drawGrid(ctx);
@@ -354,7 +527,12 @@
                             if (move.pingPong) {
                                 direction *= -1; // Reverse direction
                                 if (direction === 1) {
-                                    // Finished a full ping-pong cycle, move to next grid
+                                    pingPongCycle++;
+                                    if (pingPongCycle >= totalPingPongCycles && currentGridIndex === totalGrids - 1 && isRecording && idx === 0) {
+                                        finished = true;
+                                        if (recordResolve) recordResolve();
+                                        return;
+                                    }
                                     currentGridIndex = (currentGridIndex + 1) % grids.length;
                                     updateTIndexMapAndMaxTIndex(grids[currentGridIndex]);
                                     currentT = 0;
@@ -364,6 +542,11 @@
                                 }
                             } else {
                                 // Not ping-pong, just go to next grid
+                                if (currentGridIndex === totalGrids - 1 && isRecording && idx === 0) {
+                                    finished = true;
+                                    if (recordResolve) recordResolve();
+                                    return;
+                                }
                                 direction = 1;
                                 currentGridIndex = (currentGridIndex + 1) % grids.length;
                                 updateTIndexMapAndMaxTIndex(grids[currentGridIndex]);
@@ -372,7 +555,7 @@
                             fade = 0;
                             setTimeout(() => {
                                 requestAnimationFrame(animate);
-                            }, 300);
+                            }, 500);
                         }
                         return;
                     }
@@ -436,11 +619,44 @@
                 label.textContent = move.name;
                 const btn = document.createElement('button');
                 btn.textContent = 'Download';
-                btn.onclick = () => downloadCanvas(canvas, `${move.name}.png`);
+                btn.onclick = async () => {
+                    // Record and download video for this move
+                    const canvas = document.getElementById(`canvas-${idx}`);
+                    if (!canvas) return;
+                    btn.disabled = true;
+                    btn.textContent = 'Recording...';
+                    const stream = canvas.captureStream(60);
+                    const recordedChunks = [];
+                    const mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+                    mediaRecorder.ondataavailable = function (e) {
+                        if (e.data.size > 0) recordedChunks.push(e.data);
+                    };
+                    mediaRecorder.onstop = function () {
+                        const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.style.display = 'block';
+                        a.href = url;
+                        a.download = `${move.name}.webm`;
+                        a.textContent = `Download ${move.name} WebM Video`;
+                        document.getElementById('controls').appendChild(a);
+                        btn.disabled = false;
+                        btn.textContent = 'Download';
+                    };
+                    mediaRecorder.start();
+                    await recordMoveAnimation(move, canvas, `${move.name}.webm`);
+                    mediaRecorder.stop();
+                };
                 wrapper.appendChild(label);
                 wrapper.appendChild(canvas);
                 wrapper.appendChild(btn);
                 container.appendChild(wrapper);
+                // If recording, return a promise that resolves when finished
+                if (recordingOptions && recordingOptions.recordFirst && idx === 0) {
+                    return new Promise(resolve => {
+                        recordResolve = resolve;
+                    });
+                }
             });
         }
 
@@ -466,6 +682,45 @@
                 link.click();
             });
         });
+
+        // Add a Record Animation button
+        const recordBtn = document.createElement('button');
+        recordBtn.textContent = 'Record Animation';
+        document.getElementById('controls').appendChild(recordBtn);
+
+        recordBtn.onclick = async () => {
+            // Find the first canvas (or change to record a specific one)
+            isRecording = true;
+            // Re-render to ensure white background and fresh animation
+            let recordPromise = renderMoves({ recordFirst: true });
+            const canvas = document.querySelector('.move-container canvas');
+            if (!canvas) {
+                alert('No canvas found!');
+                isRecording = false;
+                return;
+            }
+            const stream = canvas.captureStream(60); // 60 FPS
+            const recordedChunks = [];
+            const mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+            mediaRecorder.ondataavailable = function (e) {
+                if (e.data.size > 0) recordedChunks.push(e.data);
+            };
+            mediaRecorder.onstop = function () {
+                const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'block';
+                a.href = url;
+                a.download = 'animation.webm';
+                a.textContent = 'Download WebM Video';
+                document.getElementById('controls').appendChild(a);
+                isRecording = false;
+            };
+            mediaRecorder.start();
+            // Wait for the animation to finish
+            await recordPromise;
+            mediaRecorder.stop();
+        };
 
         // Initialize
         renderMoves();
