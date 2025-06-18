@@ -131,6 +131,7 @@
         const CELL_SIZE = 30;
         const GRID_WIDTH = 5;
         const GRID_HEIGHT = 4;
+        const HEADER_HEIGHT = CELL_SIZE; // icon slots same as cell size
 
         function drawStar(ctx, cx, cy, r, roundness = 0.5) {
             ctx.save();
@@ -164,9 +165,55 @@
             ctx.restore();
         }
 
+        function drawHeaderIcons(ctx, move) {
+            // Draw icons in slots aligned left, each slot is CELL_SIZE wide
+            const iconY = HEADER_HEIGHT / 2;
+            let iconIndex = 0;
+            ctx.save();
+            ctx.lineWidth = 2.5;
+            // pingPong: left arrow
+            if (move.pingPong) {
+                const slotX = iconIndex * CELL_SIZE + CELL_SIZE / 2;
+                ctx.strokeStyle = '#0074D9';
+                ctx.beginPath();
+                ctx.moveTo(slotX - 12, iconY);
+                ctx.lineTo(slotX + 8, iconY);
+                ctx.moveTo(slotX - 4, iconY - 8);
+                ctx.lineTo(slotX - 12, iconY);
+                ctx.lineTo(slotX - 4, iconY + 8);
+                ctx.stroke();
+                iconIndex++;
+            }
+            // cardinal: cross
+            if (move.cardinal) {
+                const slotX = iconIndex * CELL_SIZE + CELL_SIZE / 2;
+                ctx.strokeStyle = '#2ECC40';
+                ctx.beginPath();
+                ctx.moveTo(slotX, iconY - 10);
+                ctx.lineTo(slotX, iconY + 10);
+                ctx.moveTo(slotX - 10, iconY);
+                ctx.lineTo(slotX + 10, iconY);
+                ctx.stroke();
+                iconIndex++;
+            }
+            // intercardinal: X
+            if (move.intercardinal) {
+                const slotX = iconIndex * CELL_SIZE + CELL_SIZE / 2;
+                ctx.strokeStyle = '#FF4136';
+                ctx.beginPath();
+                ctx.moveTo(slotX - 8, iconY - 8);
+                ctx.lineTo(slotX + 8, iconY + 8);
+                ctx.moveTo(slotX + 8, iconY - 8);
+                ctx.lineTo(slotX - 8, iconY + 8);
+                ctx.stroke();
+                iconIndex++;
+            }
+            ctx.restore();
+        }
+
         function drawCell(ctx, row, col, state, opacity = 1) {
             const x = col * CELL_SIZE;
-            const y = row * CELL_SIZE;
+            const y = row * CELL_SIZE + HEADER_HEIGHT; // shift down for header
             ctx.save();
             ctx.globalAlpha = opacity;
             let value = state;
@@ -214,7 +261,7 @@
                 wrapper.className = 'move-container';
                 const canvas = document.createElement('canvas');
                 canvas.width = CELL_SIZE * GRID_WIDTH;
-                canvas.height = CELL_SIZE * GRID_HEIGHT;
+                canvas.height = CELL_SIZE * GRID_HEIGHT + HEADER_HEIGHT;
                 canvas.id = `canvas-${idx}`;
                 const ctx = canvas.getContext('2d');
                 // Animation state
@@ -231,11 +278,14 @@
                 });
                 let currentT = 0;
                 let fade = 0;
-                const FADE_DURATION = 420; // ms
+                const FADE_DURATION = 400; // ms
                 let fadingOut = false;
                 let fadeOut = 1;
+                let direction = 1; // 1 for forward, -1 for backward
                 function animate() {
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    // Draw header icons
+                    drawHeaderIcons(ctx, move);
                     if (fadingOut) {
                         // Fade out all cells
                         move.grid.forEach((row, r) => {
@@ -254,11 +304,21 @@
                             // After fade out, reset and restart
                             fadingOut = false;
                             fadeOut = 1;
-                            currentT = 0;
+                            if (move.pingPong) {
+                                direction *= -1; // Reverse direction
+                                if (direction === 1) {
+                                    currentT = 0;
+                                } else {
+                                    currentT = maxTIndex;
+                                }
+                            } else {
+                                direction = 1;
+                                currentT = 0;
+                            }
                             fade = 0;
                             setTimeout(() => {
                                 requestAnimationFrame(animate);
-                            }, 300);
+                            }, 500);
                         }
                         return;
                     }
@@ -270,7 +330,7 @@
                                 t = cell[0];
                                 value = cell[1];
                             }
-                            if (t < currentT) {
+                            if ((direction === 1 && t < currentT) || (direction === -1 && t > currentT)) {
                                 drawCell(ctx, r, c, cell, 1);
                             } else if (t === currentT) {
                                 animating = true;
@@ -290,16 +350,30 @@
                 }
                 function moveNext() {
                     fade = 0;
-                    currentT++;
-                    if (currentT <= maxTIndex) {
-                        requestAnimationFrame(animate);
-                    } else {
-                        // Start fade out phase
-                        fadingOut = true;
-                        fadeOut = 1;
-                        setTimeout(() => {
+                    if (move.pingPong) {
+                        currentT += direction;
+                        if ((direction === 1 && currentT <= maxTIndex) || (direction === -1 && currentT >= 0)) {
                             requestAnimationFrame(animate);
-                        }, 2000);
+                        } else {
+                            // Start fade out phase
+                            fadingOut = true;
+                            fadeOut = 1;
+                            setTimeout(() => {
+                                requestAnimationFrame(animate);
+                            }, 2000);
+                        }
+                    } else {
+                        currentT++;
+                        if (currentT <= maxTIndex) {
+                            requestAnimationFrame(animate);
+                        } else {
+                            // Start fade out phase
+                            fadingOut = true;
+                            fadeOut = 1;
+                            setTimeout(() => {
+                                requestAnimationFrame(animate);
+                            }, 2000);
+                        }
                     }
                 }
                 // Start animation
