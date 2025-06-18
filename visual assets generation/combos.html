@@ -232,8 +232,36 @@
                 let currentT = 0;
                 let fade = 0;
                 const FADE_DURATION = 420; // ms
+                let fadingOut = false;
+                let fadeOut = 1;
                 function animate() {
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    if (fadingOut) {
+                        // Fade out all cells
+                        move.grid.forEach((row, r) => {
+                            row.forEach((cell, c) => {
+                                let t = 0;
+                                if (Array.isArray(cell)) t = cell[0];
+                                if (t <= maxTIndex) {
+                                    drawCell(ctx, r, c, cell, fadeOut);
+                                }
+                            });
+                        });
+                        fadeOut -= 16 / FADE_DURATION;
+                        if (fadeOut > 0) {
+                            requestAnimationFrame(animate);
+                        } else {
+                            // After fade out, reset and restart
+                            fadingOut = false;
+                            fadeOut = 1;
+                            currentT = 0;
+                            fade = 0;
+                            setTimeout(() => {
+                                requestAnimationFrame(animate);
+                            }, 300);
+                        }
+                        return;
+                    }
                     let animating = false;
                     move.grid.forEach((row, r) => {
                         row.forEach((cell, c) => {
@@ -266,10 +294,10 @@
                     if (currentT <= maxTIndex) {
                         requestAnimationFrame(animate);
                     } else {
-                        // Loop: restart from the beginning after a short pause
+                        // Start fade out phase
+                        fadingOut = true;
+                        fadeOut = 1;
                         setTimeout(() => {
-                            currentT = 0;
-                            fade = 0;
                             requestAnimationFrame(animate);
                         }, 2000);
                     }
