@@ -45,6 +45,8 @@ public:
     UFUNCTION(BlueprintCallable)
     void OnComboTriggered(const FKeyballComboResult& Combo);
 
+    int32 Sections = 2;
+
 protected:
     void GenerateFromBlueprintData();
 

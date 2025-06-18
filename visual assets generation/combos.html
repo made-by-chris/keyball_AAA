@@ -46,84 +46,104 @@
         const moves = [
 
             {
-                name: 'Raise', grid: [
+                name: 'raise', grids: [[
                     [0, 0, 0, 0, 0],
                     [0, 0, [0, 1], 0, 0],
                     [0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0]
-                ], pingPong: true, cardinal: false, intercardinal: false
+                ]], pingPong: true, cardinal: false, intercardinal: false
             },
             {
-                name: 'Strike', grid: [
+                name: 'strike', grids: [[
                     [0, 0, 0, 0, 0],
                     [0, 0, 2, 0, 0],
                     [0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0]
-                ], pingPong: true, cardinal: false, intercardinal: false
+                ]], pingPong: true, cardinal: false, intercardinal: false
             },
             {
-                name: 'Whack', grid: [
+                name: 'whack', grids: [[
                     [0, 0, 0, 0, 0],
                     [0, 0, [1, 1], 0, 0],
                     [0, [0, 1], 0, 0, 0],
                     [0, 0, 0, 0, 0]
+                ], [
+                    [0, 0, 0, 0, 0],
+                    [0, [1, 1], 0, 0, 0],
+                    [0, [0, 1], 0, 0, 0],
+                    [0, 0, 0, 0, 0]
+                ],
+
                 ], pingPong: true, cardinal: true, intercardinal: true
             },
             {
-                name: 'Stairs', grid: [
+                name: 'stairs', grids: [[
                     [0, 0, 0, [2, 1], 0],
                     [0, 0, [1, 1], 0, 0],
                     [0, [0, 1], 0, 0, 0],
                     [0, 0, 0, 0, 0]
-                ], pingPong: true, cardinal: true, intercardinal: true
+                ]], pingPong: true, cardinal: true, intercardinal: true
             },
             {
-                name: 'Seesaw', grid: [
+                name: 'seesaw', grids: [[
                     [0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0],
                     [0, [2, 1], [0, 1], [1, 1], 0],
                     [0, 0, 0, 0, 0]
-                ], pingPong: false, cardinal: true, intercardinal: true
+                ]], pingPong: false, cardinal: true, intercardinal: true
             },
             {
-                name: 'Ripple', grid: [
+                name: 'ripple', grids: [[
                     [0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0],
                     [[0, 1], 0, [1, 1], [2, 1], 0],
                     [0, 0, 0, 0, 0]
-                ], pingPong: true, cardinal: true, intercardinal: false
+                ]], pingPong: true, cardinal: true, intercardinal: false
             },
             {
-                name: 'Wave', grid: [
+                name: 'wave', grids: [[
                     [0, 0, 0, 0, 0],
                     [[0, 1], [1, 1], 0, [2, 1], 0],
                     [0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0]
-                ], pingPong: true, cardinal: true, intercardinal: false
+                ]], pingPong: true, cardinal: true, intercardinal: false
             },
             {
-                name: 'Tilt', grid: [
+                name: 'tilt', grids: [[
                     [[0, 1], 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0],
                     [[1, 1], 0, 0, 0, 0, 0]
-                ], pingPong: true, cardinal: true, intercardinal: false
+                ]], pingPong: true, cardinal: true, intercardinal: false
             },
             {
-                name: 'Diagonal', grid: [
+                name: 'diagonal', grids: [[
                     [[0, 1], 0, 0, 0, 0],
                     [0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0],
                     [0, 0, 0, 0, [1, 1]]
-                ], pingPong: true, cardinal: false, intercardinal: false
+                ], [
+                    [0, 0, 0, 0, [0, 1]],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [[1, 1], 0, 0, 0, 0]
+                ]], pingPong: true, cardinal: false, intercardinal: false
             },
             {
-                name: 'curl', grid: [
+                name: 'curl', grids: [[
                     [0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0],
                     [[0, 1], 0, [2, 1], [1, 1], 0],
                     [0, 0, 0, 0, 0]
-                ], pingPong: true, cardinal: true, intercardinal: false
+                ]], pingPong: false, cardinal: true, intercardinal: false
+            },
+            {
+                name: 'catapult', grids: [[
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [[0, 1], 0, [2, 1], [1, 1], 0],
+                    [0, 0, 0, 0, 0]
+                ]], pingPong: false, cardinal: true, intercardinal: false
             },
             // bowl, curl, conveyor force, catapult/"lob"
         ];
@@ -253,6 +273,19 @@
             ctx.restore();
         }
 
+        function drawGrid(ctx) {
+            ctx.save();
+            ctx.strokeStyle = '#ccc';
+            for (let r = 0; r < GRID_HEIGHT; r++) {
+                for (let c = 0; c < GRID_WIDTH; c++) {
+                    const x = c * CELL_SIZE;
+                    const y = r * CELL_SIZE + HEADER_HEIGHT;
+                    ctx.strokeRect(x, y, CELL_SIZE, CELL_SIZE);
+                }
+            }
+            ctx.restore();
+        }
+
         function renderMoves() {
             const container = document.getElementById('moves');
             container.innerHTML = '';
@@ -264,18 +297,30 @@
                 canvas.height = CELL_SIZE * GRID_HEIGHT + HEADER_HEIGHT;
                 canvas.id = `canvas-${idx}`;
                 const ctx = canvas.getContext('2d');
+                // Draw static grid layer once
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawHeaderIcons(ctx, move);
+                drawGrid(ctx);
+                // Support both 'grid' and 'grids' for backward compatibility
+                const grids = move.grids || [move.grid];
+                let currentGridIndex = 0;
                 // Animation state
                 let tIndexMap = [];
                 let maxTIndex = -1;
-                move.grid.forEach((row, r) => {
-                    tIndexMap[r] = [];
-                    row.forEach((cell, c) => {
-                        let t = 0;
-                        if (Array.isArray(cell)) t = cell[0];
-                        if (t > maxTIndex) maxTIndex = t;
-                        tIndexMap[r][c] = t;
+                function updateTIndexMapAndMaxTIndex(grid) {
+                    tIndexMap = [];
+                    maxTIndex = -1;
+                    grid.forEach((row, r) => {
+                        tIndexMap[r] = [];
+                        row.forEach((cell, c) => {
+                            let t = 0;
+                            if (Array.isArray(cell)) t = cell[0];
+                            if (t > maxTIndex) maxTIndex = t;
+                            tIndexMap[r][c] = t;
+                        });
                     });
-                });
+                }
+                updateTIndexMapAndMaxTIndex(grids[currentGridIndex]);
                 let currentT = 0;
                 let fade = 0;
                 const FADE_DURATION = 400; // ms
@@ -284,11 +329,13 @@
                 let direction = 1; // 1 for forward, -1 for backward
                 function animate() {
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    // Draw header icons
+                    // Draw header and grid (static background)
                     drawHeaderIcons(ctx, move);
+                    drawGrid(ctx);
+                    const grid = grids[currentGridIndex];
                     if (fadingOut) {
                         // Fade out all cells
-                        move.grid.forEach((row, r) => {
+                        grid.forEach((row, r) => {
                             row.forEach((cell, c) => {
                                 let t = 0;
                                 if (Array.isArray(cell)) t = cell[0];
@@ -301,29 +348,36 @@
                         if (fadeOut > 0) {
                             requestAnimationFrame(animate);
                         } else {
-                            // After fade out, reset and restart
+                            // After fade out, reset and go to next grid
                             fadingOut = false;
                             fadeOut = 1;
                             if (move.pingPong) {
                                 direction *= -1; // Reverse direction
                                 if (direction === 1) {
+                                    // Finished a full ping-pong cycle, move to next grid
+                                    currentGridIndex = (currentGridIndex + 1) % grids.length;
+                                    updateTIndexMapAndMaxTIndex(grids[currentGridIndex]);
                                     currentT = 0;
                                 } else {
+                                    // Start backward animation
                                     currentT = maxTIndex;
                                 }
                             } else {
+                                // Not ping-pong, just go to next grid
                                 direction = 1;
+                                currentGridIndex = (currentGridIndex + 1) % grids.length;
+                                updateTIndexMapAndMaxTIndex(grids[currentGridIndex]);
                                 currentT = 0;
                             }
                             fade = 0;
                             setTimeout(() => {
                                 requestAnimationFrame(animate);
-                            }, 500);
+                            }, 300);
                         }
                         return;
                     }
                     let animating = false;
-                    move.grid.forEach((row, r) => {
+                    grid.forEach((row, r) => {
                         row.forEach((cell, c) => {
                             let t = 0, value = cell;
                             if (Array.isArray(cell)) {

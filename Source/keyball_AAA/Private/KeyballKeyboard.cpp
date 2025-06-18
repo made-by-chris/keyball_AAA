@@ -10,6 +10,7 @@ AKeyballKeyboard::AKeyballKeyboard()
     PrimaryActorTick.bCanEverTick = true;
     KeyboardIDs.Init(0, 40);
     bReplicates = true;
+    Sections = 2;
 }
 
 void AKeyballKeyboard::GenerateFromBlueprintData()
@@ -241,6 +242,8 @@ void AKeyballKeyboard::ApplyWaveCombo(const FKeyballComboResult& Combo)
     // Determine direction: row or column
     bool bIsHorizontal = FMath::Abs(EndIndex - StartIndex) <= 4; // 5-wide row
 
+    int32 Section = (StartIndex % 10 <= 4) ? 0 : 1;
+
     TArray<int32> AffectedKeys;
     if (bIsHorizontal)
     {
@@ -248,21 +251,27 @@ void AKeyballKeyboard::ApplyWaveCombo(const FKeyballComboResult& Combo)
         for (int32 i = 0; i < 10; ++i)
         {
             int32 Index = RowStart + i;
-            if (KeyMap.Contains(Index))
+            if ((Section == 0 && i <= 4) || (Section == 1 && i >= 5))
             {
-                AffectedKeys.Add(Index);
+                if (KeyMap.Contains(Index))
+                {
+                    AffectedKeys.Add(Index);
+                }
             }
         }
     }
     else // vertical
     {
         int Col = StartIndex % 10;
-        for (int32 r = 0; r < 4; ++r)
+        if ((Section == 0 && Col <= 4) || (Section == 1 && Col >= 5))
         {
-            int32 Index = r * 10 + Col;
-            if (KeyMap.Contains(Index))
+            for (int32 r = 0; r < 4; ++r)
             {
-                AffectedKeys.Add(Index);
+                int32 Index = r * 10 + Col;
+                if (KeyMap.Contains(Index))
+                {
+                    AffectedKeys.Add(Index);
+                }
             }
         }
     }
@@ -285,6 +294,8 @@ void AKeyballKeyboard::ApplyTiltCombo(const FKeyballComboResult& Combo)
 
     bool bIsHorizontal = FMath::Abs(EndIndex - StartIndex) <= 4;
 
+    int32 Section = (StartIndex % 10 <= 4) ? 0 : 1;
+
     TArray<int32> AxisKeys;
 
     if (bIsHorizontal)
@@ -293,16 +304,22 @@ void AKeyballKeyboard::ApplyTiltCombo(const FKeyballComboResult& Combo)
         for (int32 i = 0; i < 10; ++i)
         {
             int32 Index = RowStart + i;
-            if (KeyMap.Contains(Index)) AxisKeys.Add(Index);
+            if ((Section == 0 && i <= 4) || (Section == 1 && i >= 5))
+            {
+                if (KeyMap.Contains(Index)) AxisKeys.Add(Index);
+            }
         }
     }
     else
     {
         int32 Col = StartIndex % 10;
-        for (int32 r = 0; r < 4; ++r)
+        if ((Section == 0 && Col <= 4) || (Section == 1 && Col >= 5))
         {
-            int32 Index = r * 10 + Col;
-            if (KeyMap.Contains(Index)) AxisKeys.Add(Index);
+            for (int32 r = 0; r < 4; ++r)
+            {
+                int32 Index = r * 10 + Col;
+                if (KeyMap.Contains(Index)) AxisKeys.Add(Index);
+            }
         }
     }
 
