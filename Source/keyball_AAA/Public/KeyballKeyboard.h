@@ -90,6 +90,7 @@ protected:
     TMap<int32, float> DiagonalTargetZ;
     float DiagonalLerpTime = 0.f;
     bool bDiagonalActive = false;
+    bool bDiagonalResetMode = false;
     float DiagonalEffectDuration = 6.f;
 
     void ResetDiagonalEffect();

@@ -96,6 +96,16 @@ void AKeyballKeyboard::Tick(float DeltaTime)
             T.SetLocation(Loc);
             Key->SetActorTransform(T);
         }
+
+        // If we've completed the lerp and we're in reset mode
+        if (Alpha >= 1.0f && bDiagonalResetMode)
+        {
+            // Clean up
+            bDiagonalActive = false;
+            bDiagonalResetMode = false;
+            DiagonalOriginalZ.Empty();
+            DiagonalTargetZ.Empty();
+        }
     }
 
     for (auto& Pair : ActiveKeys)
@@ -412,22 +422,15 @@ void AKeyballKeyboard::ApplyTiltCombo(const FKeyballComboResult& Combo)
 
 void AKeyballKeyboard::ResetDiagonalEffect()
 {
-    bDiagonalActive = false;
-    // Reset all affected keys to original Z
-    for (auto& Elem : DiagonalOriginalZ)
-    {
-        int32 Index = Elem.Key;
-        if (!KeyMap.Contains(Index)) continue;
-        AKeyballKey* Key = KeyMap[Index];
-        if (!Key) continue;
-        FTransform T = Key->GetActorTransform();
-        FVector Loc = T.GetLocation();
-        Loc.Z = Elem.Value;
-        T.SetLocation(Loc);
-        Key->SetActorTransform(T);
-    }
-    DiagonalOriginalZ.Empty();
-    DiagonalTargetZ.Empty();
+    // Instead of immediately resetting, start the lerp back
+    bDiagonalActive = true;
+    bDiagonalResetMode = true;  // Set reset mode
+    DiagonalLerpTime = 0.f;
+    
+    // Swap the target and original Z values to lerp back
+    TMap<int32, float> TempMap = DiagonalOriginalZ;
+    DiagonalOriginalZ = DiagonalTargetZ;
+    DiagonalTargetZ = TempMap;
 }
 
 void AKeyballKeyboard::ApplyDiagonalCombo(const FKeyballComboResult& Combo)
@@ -449,6 +452,7 @@ void AKeyballKeyboard::ApplyDiagonalCombo(const FKeyballComboResult& Combo)
     DiagonalOriginalZ.Empty();
     DiagonalTargetZ.Empty();
     bDiagonalActive = true;
+    bDiagonalResetMode = false;  // Ensure we're not in reset mode when starting
     DiagonalLerpTime = 0.f;
 
     // Clear any previous timer
@@ -475,7 +479,7 @@ void AKeyballKeyboard::ApplyDiagonalCombo(const FKeyballComboResult& Combo)
         }
     }
 
-    // Set timer to turn off effect after DiagonalEffectDuration
+    // Set timer to start the reset animation after DiagonalEffectDuration
     GetWorldTimerManager().SetTimer(
         DiagonalResetTimerHandle,
         this,
