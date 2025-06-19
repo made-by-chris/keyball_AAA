@@ -11,7 +11,6 @@ enum class EKeyballMoveType : uint8
     None UMETA(DisplayName = "None"),
     Whack,
     Stairs,
-    Ripple,
     Wave,
     Tilt,
     Diagonal

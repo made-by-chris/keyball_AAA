@@ -80,9 +80,6 @@ public:
     FLinearColor StairsColor = FLinearColor(0,1,0,1);
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Keyball|Visuals")
-    FLinearColor RippleColor = FLinearColor(0,1,0,1);
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Keyball|Visuals")
     FLinearColor WaveColor = FLinearColor(0,1,0,1);
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Keyball|Visuals")
@@ -125,8 +122,6 @@ public:
 
 
 
-    // void StartRipple();
-    // void StopRipple();
 
     // void StartDiagonal();
     // void StopDiagonal();

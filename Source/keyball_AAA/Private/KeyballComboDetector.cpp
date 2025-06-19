@@ -131,24 +131,6 @@ FKeyballComboResult UKeyballComboDetector::DetectKeyballCombo(const TArray<int32
 
             for (int i = 0; i <= N - 5; ++i)
             {
-                int A = Axis[i], B = Axis[i+1], E = Axis[i+4];
-                if (PressedSet.Contains(A) && PressedSet.Contains(B) && PressedSet.Contains(E))
-                {
-                    Result.MoveType = EKeyballMoveType::Ripple;
-                    Result.KeysIndex = {A, B, E};
-                    int32 IndexA = PressedIndices.Find(A);
-                    int32 IndexE = PressedIndices.Find(E);
-                    if (IndexA != INDEX_NONE && IndexE != INDEX_NONE && IndexA > IndexE)
-                        Result.Direction = GetDirection(E, A);
-                    else
-                        Result.Direction = GetDirection(A, E);
-                    Result.bOverBorder = IsOverBorder(A, B) || IsOverBorder(B, E);
-                    if (!Result.bOverBorder) return Result;
-                }
-            }
-
-            for (int i = 0; i <= N - 5; ++i)
-            {
                 int A = Axis[i], E = Axis[i+4];
                 if (PressedSet.Contains(A) && PressedSet.Contains(E))
                 {
@@ -186,23 +168,6 @@ FKeyballComboResult UKeyballComboDetector::DetectKeyballCombo(const TArray<int32
                 }
             }
 
-            for (int i = 0; i <= N - 4; ++i)
-            {
-                int A = Axis[i], B = Axis[i+1], D = Axis[i+3];
-                if (PressedSet.Contains(A) && PressedSet.Contains(B) && PressedSet.Contains(D))
-                {
-                    Result.MoveType = EKeyballMoveType::Ripple;
-                    Result.KeysIndex = {A, B, D};
-                    int32 IndexA = PressedIndices.Find(A);
-                    int32 IndexD = PressedIndices.Find(D);
-                    if (IndexA != INDEX_NONE && IndexD != INDEX_NONE && IndexA > IndexD)
-                        Result.Direction = GetDirection(D, A);
-                    else
-                        Result.Direction = GetDirection(A, D);
-                    Result.bOverBorder = IsOverBorder(A, B) || IsOverBorder(B, D);
-                    if (!Result.bOverBorder) return Result;
-                }
-            }
 
             for (int i = 0; i <= N - 4; ++i)
             {

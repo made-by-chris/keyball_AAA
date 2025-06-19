@@ -254,9 +254,6 @@ void AKeyballKey::UpdateOutline(EKeyLEDState NewState, FKeyballComboResult Combo
         case EKeyballMoveType::Stairs:
             ColorToSet = StairsColor;
             break;
-        case EKeyballMoveType::Ripple:
-            ColorToSet = RippleColor;
-            break;
         case EKeyballMoveType::Wave:
             ColorToSet = WaveColor;
             break;
