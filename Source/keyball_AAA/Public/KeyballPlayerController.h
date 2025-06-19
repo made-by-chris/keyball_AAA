@@ -14,10 +14,8 @@ class KEYBALL_AAA_API AKeyballPlayerController : public APlayerController
 {
     GENERATED_BODY()
 
-
     void OnAnyKeyPressed(FKey PressedKey);     // Your original method
     void OnAnyKeyReleased(FKey ReleasedKey);   // Your original method
-
 
 public:
     AKeyballPlayerController();
@@ -27,9 +25,10 @@ public:
 protected:
     virtual void BeginPlay() override;
 
-    virtual bool InputKey(FKey Key, EInputEvent EventType, float AmountDepressed, bool bGamepad) override;
-
     int32 GetIndexFromLayoutKey(const FKey& InKey) const;
+    FString NormalizeString(const FString& In) const;
+
+    virtual bool InputKey(FKey Key, EInputEvent EventType, float AmountDepressed, bool bGamepad) override;
 
 private:
     AKeyballKeyboard* Keyboard;
@@ -49,6 +48,6 @@ private:
     TArray<FString> layout;
 
     int32 GetPlayerForIndex(int32 Index) const;
-
+    
     TMap<FString, FString> UnrealKeyLabelToNaturalGlyphMap;
 };

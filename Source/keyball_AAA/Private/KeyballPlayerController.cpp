@@ -6,6 +6,8 @@
 #include "KeyballPlayerState.h"
 #include "KeyballKeyboard.h"
 #include "Engine/Engine.h"
+#include "InputCoreTypes.h"
+#include "Internationalization/Text.h"
 
 AKeyballPlayerController::AKeyballPlayerController()
 {
@@ -15,8 +17,15 @@ AKeyballPlayerController::AKeyballPlayerController()
     Keyboard = nullptr;
     ComboDetector = nullptr;
     doubleTapT = 0.4f;
-    layout = {"1","2","3","4","5","6","7","8","9","0","q","w","e","r","t","z","u","i","o","p","a","s","d","f","g","h","j","k","l","ö","y","x","c","v","b","n","m",",",".","-"};
-
+    
+    UnrealKeyLabelToNaturalGlyphMap.Add("UnknownCharCode_246", "ö");
+    UnrealKeyLabelToNaturalGlyphMap.Add("ö", "ö");
+    UnrealKeyLabelToNaturalGlyphMap.Add("Ö", "ö");
+    UnrealKeyLabelToNaturalGlyphMap.Add("ä", "ä");
+    UnrealKeyLabelToNaturalGlyphMap.Add("Ä", "ä");
+    UnrealKeyLabelToNaturalGlyphMap.Add("ü", "ü");
+    UnrealKeyLabelToNaturalGlyphMap.Add("Ü", "ü");
+    UnrealKeyLabelToNaturalGlyphMap.Add("ß", "ß");
     UnrealKeyLabelToNaturalGlyphMap.Add("One", "1");
     UnrealKeyLabelToNaturalGlyphMap.Add("Two", "2");
     UnrealKeyLabelToNaturalGlyphMap.Add("Three", "3");
@@ -51,6 +60,10 @@ AKeyballPlayerController::AKeyballPlayerController()
 void AKeyballPlayerController::BeginPlay()
 {
     Super::BeginPlay();
+
+    for (int i = 0; i < layout.Num(); i++)
+  GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("layout[29] codepoint: %04x"), layout[29][0]));
+
     FString layoutasstring2 = "";
     for (const FString& s : layout)
     {
@@ -81,11 +94,13 @@ bool AKeyballPlayerController::InputKey(FKey Key, EInputEvent EventType, float A
         OnAnyKeyReleased(Key);
     }
 
-    return Super::InputKey(Key, EventType, AmountDepressed, bGamepad);
+    return APlayerController::InputKey(Key, EventType, AmountDepressed, bGamepad);
 }
 
 void AKeyballPlayerController::OnAnyKeyPressed(FKey PressedKey)
 {
+    UE_LOG(LogTemp, Log, TEXT("AAAAAOnAnyKeyPressed: %s"), *PressedKey.ToString());
+    UE_LOG(LogTemp, Log, TEXT("AAAAAOnAnyKeyPressed fname: %s"), *PressedKey.GetFName().ToString());
     int32 Index = GetIndexFromLayoutKey(PressedKey);
     if (Index < 0) return;
 
@@ -181,20 +196,36 @@ int32 AKeyballPlayerController::GetPlayerForIndex(int32 Index) const
 
 int32 AKeyballPlayerController::GetIndexFromLayoutKey(const FKey& InKey) const
 {
-    // log the name (not toString) of the key
-    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("AAAAAGetIndexFromLayoutKey: %s"), *InKey.GetFName()));
 
-    FString KeyString = InKey.ToString();
-    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("AAAAAGetIndexFromLayoutKey: %s"), *KeyString));
-    const FString* MappedGlyph = UnrealKeyLabelToNaturalGlyphMap.Find(KeyString);
+    for (int i = 0; i < layout.Num(); i++)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan,
+            FString::Printf(TEXT("layout[%d]: %s"), i, *layout[i]));
+    }
+
+
+    FString KeyString = InKey.GetFName().ToString();
+    FString AltKeyString = InKey.ToString();
+
+    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("FName: %s | ToString: %s"), *KeyString, *AltKeyString));
+
+    const FString* MappedGlyph = UnrealKeyLabelToNaturalGlyphMap.Find(NormalizeString(KeyString));
+    if (!MappedGlyph)
+        MappedGlyph = UnrealKeyLabelToNaturalGlyphMap.Find(NormalizeString(AltKeyString));
+
     if (MappedGlyph)
     {
+        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("FOUND MAPPED GLYPH: %s"), **MappedGlyph));
         return layout.Find(*MappedGlyph);
     }
-    return layout.Find(KeyString);
+
+    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("NO MAPPED GLYPH: %s"), *KeyString));
+    int32 layoutIndex = layout.Find(NormalizeString(KeyString)); // fallback
+    // log the layoutIndex
+    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("FALLBACK: %d"), layoutIndex));
+    return layoutIndex;
 }
 
-//unused
 void AKeyballPlayerController::updateLayout(const TArray<FString>& NewLayout)
 {
     FString layoutasstring = "";
@@ -204,4 +235,9 @@ void AKeyballPlayerController::updateLayout(const TArray<FString>& NewLayout)
     }
     GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("AAAAAUpdating layout to: %s"), *layoutasstring));
     layout = NewLayout;
+}
+
+FString AKeyballPlayerController::NormalizeString(const FString& In) const
+{
+    return FText::FromString(In).ToLower().ToString(); // force normalized lowercase
 }
