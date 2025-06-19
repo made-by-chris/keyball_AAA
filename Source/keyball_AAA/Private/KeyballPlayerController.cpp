@@ -15,11 +15,48 @@ AKeyballPlayerController::AKeyballPlayerController()
     Keyboard = nullptr;
     ComboDetector = nullptr;
     doubleTapT = 0.4f;
+    layout = {"1","2","3","4","5","6","7","8","9","0","q","w","e","r","t","z","u","i","o","p","a","s","d","f","g","h","j","k","l","ö","y","x","c","v","b","n","m",",",".","-"};
+
+    UnrealKeyLabelToNaturalGlyphMap.Add("One", "1");
+    UnrealKeyLabelToNaturalGlyphMap.Add("Two", "2");
+    UnrealKeyLabelToNaturalGlyphMap.Add("Three", "3");
+    UnrealKeyLabelToNaturalGlyphMap.Add("Four", "4");
+    UnrealKeyLabelToNaturalGlyphMap.Add("Five", "5");
+    UnrealKeyLabelToNaturalGlyphMap.Add("Six", "6");
+    UnrealKeyLabelToNaturalGlyphMap.Add("Seven", "7");
+    UnrealKeyLabelToNaturalGlyphMap.Add("Eight", "8");
+    UnrealKeyLabelToNaturalGlyphMap.Add("Nine", "9");
+    UnrealKeyLabelToNaturalGlyphMap.Add("Zero", "0");
+    UnrealKeyLabelToNaturalGlyphMap.Add("Comma", ",");
+    UnrealKeyLabelToNaturalGlyphMap.Add("Period", ".");
+    UnrealKeyLabelToNaturalGlyphMap.Add("Minus", "-");
+    UnrealKeyLabelToNaturalGlyphMap.Add("Semicolon", ";");
+    UnrealKeyLabelToNaturalGlyphMap.Add("Apostrophe", "'");
+    UnrealKeyLabelToNaturalGlyphMap.Add("Slash", "/");
+    UnrealKeyLabelToNaturalGlyphMap.Add("Hyphen", "-");
+    UnrealKeyLabelToNaturalGlyphMap.Add("Backslash", "\\");
+    UnrealKeyLabelToNaturalGlyphMap.Add("Equal", "=");
+    UnrealKeyLabelToNaturalGlyphMap.Add("Plus", "+");
+    UnrealKeyLabelToNaturalGlyphMap.Add("LeftBracket", "[");
+    UnrealKeyLabelToNaturalGlyphMap.Add("RightBracket", "]");
+    UnrealKeyLabelToNaturalGlyphMap.Add("LeftBrace", "{");
+    UnrealKeyLabelToNaturalGlyphMap.Add("RightBrace", "}");
+    // UnrealKeyLabelToNaturalGlyphMap.Add("ö", ";");
+    // UnrealKeyLabelToNaturalGlyphMap.Add("Ö", ";");
+    UnrealKeyLabelToNaturalGlyphMap.Add("ä", "'");
+    UnrealKeyLabelToNaturalGlyphMap.Add("ü", "/");
+    UnrealKeyLabelToNaturalGlyphMap.Add("ß", "=");
 }
 
 void AKeyballPlayerController::BeginPlay()
 {
     Super::BeginPlay();
+    FString layoutasstring2 = "";
+    for (const FString& s : layout)
+    {
+        layoutasstring2 += s + ", ";
+    }
+    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("AAAAABeginPlay: %s"), *layoutasstring2));
 
     for (TActorIterator<AKeyballKeyboard> It(GetWorld()); It; ++It)
     {
@@ -49,8 +86,10 @@ bool AKeyballPlayerController::InputKey(FKey Key, EInputEvent EventType, float A
 
 void AKeyballPlayerController::OnAnyKeyPressed(FKey PressedKey)
 {
-    int32 Index = GetIndexFromFKey(PressedKey);
+    int32 Index = GetIndexFromLayoutKey(PressedKey);
     if (Index < 0) return;
+
+    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("AAAAAOnAnyKeyPressed: %s, %d"), *PressedKey.ToString(), Index));
 
     // Magic key logic
     if (PressedKey == EKeys::LeftShift)
@@ -103,9 +142,12 @@ void AKeyballPlayerController::OnAnyKeyPressed(FKey PressedKey)
 
 void AKeyballPlayerController::OnAnyKeyReleased(FKey ReleasedKey)
 {
-    int32 Index = GetIndexFromFKey(ReleasedKey);
-    int32 PlayerIndex = GetPlayerForIndex(Index);
+    int32 Index = GetIndexFromLayoutKey(ReleasedKey);
     if (Index < 0) return;
+
+    int32 PlayerIndex = GetPlayerForIndex(Index);
+
+    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("AAAAAOnAnyKeyReleased: %s, %d"), *ReleasedKey.ToString(), Index));
 
     // Magic key logic
     if (ReleasedKey == EKeys::LeftShift)
@@ -131,46 +173,35 @@ void AKeyballPlayerController::OnAnyKeyReleased(FKey ReleasedKey)
     }
 }
 
-int32 AKeyballPlayerController::GetIndexFromFKey(const FKey& InKey) const
-{
-    static TMap<FKey, int32> KeyToIndexMap = {
-        { EKeys::One, 0 }, { EKeys::Two, 1 }, { EKeys::Three, 2 }, { EKeys::Four, 3 }, { EKeys::Five, 4 },
-        { EKeys::Six, 5 }, { EKeys::Seven, 6 }, { EKeys::Eight, 7 }, { EKeys::Nine, 8 }, { EKeys::Zero, 9 },
-        { EKeys::Q, 10 }, { EKeys::W, 11 }, { EKeys::E, 12 }, { EKeys::R, 13 }, { EKeys::T, 14 },
-        { EKeys::Y, 15 }, { EKeys::U, 16 }, { EKeys::I, 17 }, { EKeys::O, 18 }, { EKeys::P, 19 },
-        { EKeys::A, 20 }, { EKeys::S, 21 }, { EKeys::D, 22 }, { EKeys::F, 23 }, { EKeys::G, 24 },
-        { EKeys::H, 25 }, { EKeys::J, 26 }, { EKeys::K, 27 }, { EKeys::L, 28 }, { EKeys::Semicolon, 29 },
-        { EKeys::Z, 30 }, { EKeys::X, 31 }, { EKeys::C, 32 }, { EKeys::V, 33 }, { EKeys::B, 34 },
-        { EKeys::N, 35 }, { EKeys::M, 36 }, { EKeys::Comma, 37 }, { EKeys::Period, 38 }, { EKeys::Slash, 39 }
-    };
-
-    const int32* FoundIndex = KeyToIndexMap.Find(InKey);
-    return FoundIndex ? *FoundIndex : -1;
-}
-
-void AKeyballPlayerController::HandleAnyKeyPressed()
-{
-    // TODO: Implement or leave empty if not needed
-}
-
-void AKeyballPlayerController::HandleAnyKeyReleased()
-{
-    // TODO: Implement or leave empty if not needed
-}
-
-void AKeyballPlayerController::SetupInputComponent()
-{
-    Super::SetupInputComponent();
-    // TODO: Bind input if needed
-}
-
 int32 AKeyballPlayerController::GetPlayerForIndex(int32 Index) const
 {
     if (Index < 0 || Index > 39) return -1;
     return (Index % 10 <= 4) ? 1 : 2;
 }
 
+int32 AKeyballPlayerController::GetIndexFromLayoutKey(const FKey& InKey) const
+{
+    // log the name (not toString) of the key
+    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("AAAAAGetIndexFromLayoutKey: %s"), *InKey.GetFName()));
+
+    FString KeyString = InKey.ToString();
+    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("AAAAAGetIndexFromLayoutKey: %s"), *KeyString));
+    const FString* MappedGlyph = UnrealKeyLabelToNaturalGlyphMap.Find(KeyString);
+    if (MappedGlyph)
+    {
+        return layout.Find(*MappedGlyph);
+    }
+    return layout.Find(KeyString);
+}
+
+//unused
 void AKeyballPlayerController::updateLayout(const TArray<FString>& NewLayout)
 {
+    FString layoutasstring = "";
+    for (const FString& s : NewLayout)
+    {
+        layoutasstring += s + ", ";
+    }
+    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("AAAAAUpdating layout to: %s"), *layoutasstring));
     layout = NewLayout;
 }

@@ -11,7 +11,6 @@ FKeyballComboResult UKeyballComboDetector::DetectKeyballCombo(const TArray<int32
     {
         PressedIndicesString += FString::Printf(TEXT("%d "), Index);
     }
-    GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, PressedIndicesString);
 
     FKeyballComboResult Result;
 
@@ -22,7 +21,6 @@ FKeyballComboResult UKeyballComboDetector::DetectKeyballCombo(const TArray<int32
     for (int32 i = 0; i < PressedIndices.Num() - 1; i++)
     {
         // log checking pair i and i+1
-        GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, FString::Printf(TEXT("Checking pair %d, %d"), PressedIndices[i], PressedIndices[i + 1]));
         bool bGoodPair = false;
         if ((PressedIndices[i] == 0 && PressedIndices[i + 1] == 34) || (PressedIndices[i] == 5 && PressedIndices[i + 1] == 39))
         {
@@ -218,7 +216,6 @@ FKeyballComboResult UKeyballComboDetector::DetectKeyballCombo(const TArray<int32
 EKeyballDirection UKeyballComboDetector::GetDirection(int32 From, int32 To)
 {
 
-    GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, FString::Printf(TEXT("XXXXXX From: %d, To: %d"), From, To));
 
 
     int32 RowFrom = From / 10, ColFrom = From % 10;

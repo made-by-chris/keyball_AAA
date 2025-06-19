@@ -1,5 +1,16 @@
 [
 	{
+		"name": "regular",
+		"staticMesh": [
+			"/Game/Keys/realisticKeyCap.realisticKeyCap"
+		],
+		"status": "Free",
+		"active": false,
+		"keyboardType": "LessThan40",
+		"displayScale": 1,
+		"LessThan40Algo": "Loop"
+	},
+	{
 		"name": "nuchiclet",
 		"staticMesh": [
 			"/Game/Keys/nuchiclet/nuchiclet-0.nuchiclet-0",
@@ -142,17 +153,7 @@
 		"displayScale": 2,
 		"LessThan40Algo": "Loop"
 	},
-	{
-		"name": "regular",
-		"staticMesh": [
-			"/Game/Keys/realisticKeyCap.realisticKeyCap"
-		],
-		"status": "Free",
-		"active": false,
-		"keyboardType": "LessThan40",
-		"displayScale": 1,
-		"LessThan40Algo": "Loop"
-	},
+	
 	{
 		"name": "nubs",
 		"staticMesh": [

@@ -171,11 +171,6 @@ void AKeyballKeyboard::OnKeyReleased(int32 ReleasedIndex, const TArray<int32>& R
 
 void AKeyballKeyboard::ApplyComboEffect(const FKeyballComboResult& Combo)
 {
-    GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("ApplyComboEffect: %s"), 
-        *UEnum::GetValueAsString(Combo.MoveType)));
-    FString ComboIndicesString = FString::Printf(TEXT("Combo indices: %d, %d, %s"), Combo.KeysIndex[0], Combo.KeysIndex[1], *UEnum::GetValueAsString(Combo.Direction));
-    GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, ComboIndicesString);    
-
     switch (Combo.MoveType)
     {
         case EKeyballMoveType::Whack:

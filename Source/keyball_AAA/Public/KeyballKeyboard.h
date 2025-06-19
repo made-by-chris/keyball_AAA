@@ -81,7 +81,6 @@ protected:
     float SharedZTarget = 0.f;
 
     void StartSharedOffsetZ(float TargetZ, float Duration);
-    // void ApplyRippleCombo(const FKeyballComboResult& Combo);
     // void ApplyTiltCombo(const FKeyballComboResult& Combo);
     // void ApplyDiagonalCombo(const FKeyballComboResult& Combo);
     // and later, seesaw, bowl, curl, conveyor force, catapult/"lob", etc.
