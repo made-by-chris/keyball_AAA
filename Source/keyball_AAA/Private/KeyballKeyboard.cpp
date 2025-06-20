@@ -447,13 +447,30 @@ void AKeyballKeyboard::ApplyTiltCombo(const FKeyballComboResult& Combo)
             break;
     }
 
+    // Determine sequence direction based on combo direction (computed once)
+    bool bReverseSequence = false;
+    switch (Combo.Direction)
+    {
+        case EKeyballDirection::Right:
+        case EKeyballDirection::Down:
+            bReverseSequence = false; // Start from first key (index 0)
+            break;
+        case EKeyballDirection::Left:
+        case EKeyballDirection::Up:
+            bReverseSequence = true; // Start from last key
+            break;
+    }
+
     for (int32 i = 0; i < AxisKeys.Num(); ++i)
     {
         AKeyballKey* Key = KeyMap[AxisKeys[i]];
         if (!Key) continue;
         
+        // Reverse the sequence index if needed
+        int32 SequenceIndex = bReverseSequence ? (AxisKeys.Num() - 1 - i) : i;
+        
         // Add phase offset so keys tilt with slight delay
-        float PhaseOffset = i * 0.1f; // 0.2 second delay between each key
+        float PhaseOffset = SequenceIndex * 0.1f; // 0.1 second delay between each key
         Key->StartTilt(PivotWorld, AxisVector, 0.5f, PhaseOffset);
     }
 }
