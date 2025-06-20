@@ -157,6 +157,44 @@ public:
     float CurrentLocalZOffset = 0.f;
     float TargetLocalZOffset = 0.f;
 
+    // Charge mechanic
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Keyball|Charge")
+    float ChargeLevel = 1.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Keyball|Charge")
+    float MaxChargeLevel = 2.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Keyball|Charge")
+    float ChargeTime = 0.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Keyball|Charge")
+    float MaxChargeTime = 1.f; // Time to reach max charge (tunable)
+
+    UFUNCTION(BlueprintCallable, Category = "Keyball|Charge")
+    void UpdateCharge(float DeltaTime, bool bIsKeyHeld);
+
+    UFUNCTION(BlueprintCallable, Category = "Keyball|Charge")
+    void ResetCharge();
+
+    // --- Sound cues ---
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Keyball|Sound")
+    USoundBase* ChargingSound;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Keyball|Sound")
+    USoundBase* ChargedSound;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Keyball|Sound")
+    USoundBase* WhackReleaseChargedSound;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Keyball|Sound")
+    USoundBase* WhackReleaseNormalSound;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Keyball|Sound")
+    USoundBase* WhackReleaseUnderchargedSound;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Keyball|Sound")
+    USoundBase* RefillSound;
+
     // Add constructor and Tick declaration
     AKeyballKey();
     virtual void Tick(float DeltaTime) override;
@@ -175,4 +213,10 @@ private:
     void CacheTopFacePivots();
 
     bool bIsDoubleTapActive = false;
+
+    // For sound logic
+    bool bWasCharging = false;
+    bool bPlayedChargedSound = false;
+    bool bPlayedRefillSound = false;
+    float LastChargeLevel = 1.0f;
 };
