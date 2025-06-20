@@ -74,6 +74,20 @@ protected:
     void ApplyTiltCombo(const FKeyballComboResult& Combo);
     void ApplyDiagonalCombo(const FKeyballComboResult& Combo);
     
+    // Per-side target Z management - always lerping
+    TMap<int32, float> LeftSideTargetZ;
+    TMap<int32, float> RightSideTargetZ;
+    TMap<int32, float> LeftSideNeutralZ;  // Original neutral positions
+    TMap<int32, float> RightSideNeutralZ; // Original neutral positions
+    float LerpTime = 0.f;
+    bool bLerpActive = false;
+    float LerpDuration = 3.0f;  // 1 second lerp duration
+
+    void StartLerpToTargets();
+    void SetSideTargetZ(int32 Side, const TMap<int32, float>& NewTargets);
+    void ResetSideToNeutral(int32 Side);
+    int32 GetSideFromIndex(int32 Index) const; // 0 = left, 1 = right
+    
     bool bSharedZActive = false;
     float SharedZTimeElapsed = 0.f;
     float SharedZDuration = 0.f;
@@ -85,16 +99,7 @@ protected:
     // void ApplyDiagonalCombo(const FKeyballComboResult& Combo);
     // and later, seesaw, bowl, curl, conveyor force, catapult/"lob", etc.
 
-    TMap<int32, float> DiagonalOriginalZ;
-    TMap<int32, float> DiagonalTargetZ;
-    float DiagonalLerpTime = 0.f;
-    bool bDiagonalActive = false;
-    bool bDiagonalResetMode = false;
-    float DiagonalEffectDuration = 6.f;
-
-    void ResetDiagonalEffect();
-    FTimerHandle DiagonalResetTimerHandle;
-
+    float TerrainZOffset = 50.f;
 };
 
 

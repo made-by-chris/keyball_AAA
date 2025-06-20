@@ -72,39 +72,83 @@ void AKeyballKeyboard::BeginPlay()
 {
     Super::BeginPlay();
     GenerateFromBlueprintData();
+    
+    // Initialize per-side target Z maps with neutral positions
+    LeftSideTargetZ.Empty();
+    RightSideTargetZ.Empty();
+    LeftSideNeutralZ.Empty();
+    RightSideNeutralZ.Empty();
+    
+    for (auto& Pair : KeyMap)
+    {
+        int32 Index = Pair.Key;
+        AKeyballKey* Key = Pair.Value;
+        if (Key)
+        {
+            FTransform T = Key->GetActorTransform();
+            FVector Loc = T.GetLocation();
+            float NeutralZ = Loc.Z;
+            
+            // Determine which side this key belongs to
+            int32 Side = GetSideFromIndex(Index);
+            if (Side == 0) // Left side
+            {
+                LeftSideTargetZ.Add(Index, NeutralZ);
+                LeftSideNeutralZ.Add(Index, NeutralZ);
+            }
+            else // Right side
+            {
+                RightSideTargetZ.Add(Index, NeutralZ);
+                RightSideNeutralZ.Add(Index, NeutralZ);
+            }
+        }
+    }
 }
 
 void AKeyballKeyboard::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
-    if (bDiagonalActive)
+    if (bLerpActive)
     {
-        DiagonalLerpTime += DeltaTime;
-        float Alpha = FMath::Clamp(DiagonalLerpTime / 1.0f, 0.f, 1.f); // 1s lerp duration
-        for (auto& Elem : DiagonalTargetZ)
+        LerpTime += DeltaTime;
+        float Alpha = FMath::Clamp(LerpTime / LerpDuration, 0.f, 1.f);
+        
+        // Lerp all keys to their current targets
+        for (auto& Pair : KeyMap)
         {
-            int32 Index = Elem.Key;
-            float TargetZ = Elem.Value;
-            float StartZ = DiagonalOriginalZ.Contains(Index) ? DiagonalOriginalZ[Index] : 0.f;
-            if (!KeyMap.Contains(Index)) continue;
-            AKeyballKey* Key = KeyMap[Index];
+            int32 Index = Pair.Key;
+            AKeyballKey* Key = Pair.Value;
             if (!Key) continue;
+            
+            // Get current position
             FTransform T = Key->GetActorTransform();
             FVector Loc = T.GetLocation();
-            Loc.Z = FMath::Lerp(StartZ, TargetZ, Alpha);
+            float CurrentZ = Loc.Z;
+            
+            // Get target Z for this key's side
+            float TargetZ = CurrentZ; // Default to current if no target
+            int32 Side = GetSideFromIndex(Index);
+            if (Side == 0 && LeftSideTargetZ.Contains(Index))
+            {
+                TargetZ = LeftSideTargetZ[Index];
+            }
+            else if (Side == 1 && RightSideTargetZ.Contains(Index))
+            {
+                TargetZ = RightSideTargetZ[Index];
+            }
+            
+            // Lerp to target
+            Loc.Z = FMath::Lerp(CurrentZ, TargetZ, Alpha);
             T.SetLocation(Loc);
             Key->SetActorTransform(T);
         }
-
-        // If we've completed the lerp and we're in reset mode
-        if (Alpha >= 1.0f && bDiagonalResetMode)
+        
+        // Check if lerp is complete
+        if (Alpha >= 1.0f)
         {
-            // Clean up
-            bDiagonalActive = false;
-            bDiagonalResetMode = false;
-            DiagonalOriginalZ.Empty();
-            DiagonalTargetZ.Empty();
+            bLerpActive = false;
+            LerpTime = 0.f;
         }
     }
 
@@ -385,17 +429,17 @@ void AKeyballKeyboard::ApplyTiltCombo(const FKeyballComboResult& Combo)
     {
         case EKeyballDirection::Right:
         case EKeyballDirection::DownRight:
-            AxisVector = FVector::BackwardVector;
+            AxisVector = FVector::LeftVector;
             break;
         case EKeyballDirection::Left:
         case EKeyballDirection::DownLeft:
-            AxisVector = FVector::ForwardVector;
+            AxisVector = FVector::RightVector;
             break;
         case EKeyballDirection::Down:
-            AxisVector = FVector::LeftVector;
+            AxisVector = FVector::BackwardVector;
             break;
         case EKeyballDirection::Up:
-            AxisVector = FVector::RightVector;
+            AxisVector = FVector::ForwardVector;
             break;
         default:
             if (Combo.Direction == EKeyballDirection::UpRight)
@@ -415,19 +459,6 @@ void AKeyballKeyboard::ApplyTiltCombo(const FKeyballComboResult& Combo)
     }
 }
 
-void AKeyballKeyboard::ResetDiagonalEffect()
-{
-    // Instead of immediately resetting, start the lerp back
-    bDiagonalActive = true;
-    bDiagonalResetMode = true;  // Set reset mode
-    DiagonalLerpTime = 0.f;
-    
-    // Swap the target and original Z values to lerp back
-    TMap<int32, float> TempMap = DiagonalOriginalZ;
-    DiagonalOriginalZ = DiagonalTargetZ;
-    DiagonalTargetZ = TempMap;
-}
-
 void AKeyballKeyboard::ApplyDiagonalCombo(const FKeyballComboResult& Combo)
 {
     if (Combo.KeysIndex.Num() != 2) return;
@@ -437,22 +468,17 @@ void AKeyballKeyboard::ApplyDiagonalCombo(const FKeyballComboResult& Combo)
     int32 StartRow = Start / 10, StartCol = Start % 10;
     int32 EndRow = End / 10, EndCol = End % 10;
 
+    // Determine which side this diagonal affects
     int32 Section = (StartCol <= 4) ? 0 : 1;
     int32 ColMin = (Section == 0) ? 0 : 5;
     int32 ColMax = (Section == 0) ? 4 : 9;
 
     int32 MaxDist = FMath::Max(FMath::Abs(EndRow - StartRow), FMath::Abs(EndCol - StartCol));
-    float StepHeight = 10.f;
+    float StepHeight = TerrainZOffset;
 
-    DiagonalOriginalZ.Empty();
-    DiagonalTargetZ.Empty();
-    bDiagonalActive = true;
-    bDiagonalResetMode = false;  // Ensure we're not in reset mode when starting
-    DiagonalLerpTime = 0.f;
-
-    // Clear any previous timer
-    GetWorldTimerManager().ClearTimer(DiagonalResetTimerHandle);
-
+    // Create new targets for this side
+    TMap<int32, float> NewTargets;
+    
     for (int32 Row = 0; Row < 4; ++Row)
     {
         for (int32 Col = ColMin; Col <= ColMax; ++Col)
@@ -467,20 +493,63 @@ void AKeyballKeyboard::ApplyDiagonalCombo(const FKeyballComboResult& Combo)
             Height = FMath::Clamp(Height, 0, MaxDist);
             float Z = Height * StepHeight;
 
-            FTransform T = Key->GetActorTransform();
-            FVector Loc = T.GetLocation();
-            DiagonalOriginalZ.Add(Index, Loc.Z);
-            DiagonalTargetZ.Add(Index, Z);
+            NewTargets.Add(Index, Z);
         }
     }
 
-    // Set timer to start the reset animation after DiagonalEffectDuration
+    // Set the new targets for this side and start lerping
+    SetSideTargetZ(Section, NewTargets);
+    
+    // Set a timer to reset this side back to neutral after some time
+    FTimerHandle ResetTimerHandle;
     GetWorldTimerManager().SetTimer(
-        DiagonalResetTimerHandle,
-        this,
-        &AKeyballKeyboard::ResetDiagonalEffect,
-        DiagonalEffectDuration,
+        ResetTimerHandle,
+        [this, Section]() { ResetSideToNeutral(Section); },
+        6.0f, // 6 second duration
         false
     );
+}
+
+int32 AKeyballKeyboard::GetSideFromIndex(int32 Index) const
+{
+    // Left side: columns 0-4, Right side: columns 5-9
+    int32 Col = Index % 10;
+    return (Col <= 4) ? 0 : 1;
+}
+
+void AKeyballKeyboard::SetSideTargetZ(int32 Side, const TMap<int32, float>& NewTargets)
+{
+    if (Side == 0)
+    {
+        LeftSideTargetZ = NewTargets;
+    }
+    else
+    {
+        RightSideTargetZ = NewTargets;
+    }
+    StartLerpToTargets();
+}
+
+void AKeyballKeyboard::ResetSideToNeutral(int32 Side)
+{
+    // Reset the specified side back to neutral positions
+    TMap<int32, float> NeutralTargets;
+    
+    if (Side == 0)
+    {
+        NeutralTargets = LeftSideNeutralZ;
+    }
+    else
+    {
+        NeutralTargets = RightSideNeutralZ;
+    }
+    
+    SetSideTargetZ(Side, NeutralTargets);
+}
+
+void AKeyballKeyboard::StartLerpToTargets()
+{
+    bLerpActive = true;
+    LerpTime = 0.f;
 }
 
