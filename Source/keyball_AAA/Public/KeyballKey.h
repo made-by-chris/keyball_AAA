@@ -116,6 +116,9 @@ public:
     float TiltDuration = 0.5f;
     float TiltMaxAngle = 23.f; // degrees
     float TiltPhaseOffset = 0.f; // Phase offset for staggering
+    float TiltStartAngle = 0.f; // Current angle when starting new tilt
+    float TiltTargetAngle = 0.f; // Target angle for the tilt
+    FVector TiltCurrentAxis = FVector::RightVector; // Current tilt axis to detect direction changes
 
     FVector TiltPivot = FVector::ZeroVector;
     FVector TiltAxis = FVector::RightVector; // defaults to horizontal row

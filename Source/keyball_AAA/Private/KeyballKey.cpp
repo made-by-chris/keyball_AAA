@@ -168,7 +168,20 @@ void AKeyballKey::UpdateKeyAnimation(float DeltaTime)
         float t = (TiltTimeElapsed - TiltPhaseOffset) / TiltDuration;
         t = FMath::Clamp(t, 0.f, 1.f);
 
-        float Angle = FMath::Sin(t * PI) * TiltMaxAngle; // Up and down once
+        // Lerp from start angle to target angle, then back to neutral
+        float Angle;
+        if (t < 0.5f)
+        {
+            // First half: go from start to target
+            float halfT = t * 2.f;
+            Angle = FMath::Lerp(TiltStartAngle, TiltTargetAngle, halfT);
+        }
+        else
+        {
+            // Second half: go from target back to neutral
+            float halfT = (t - 0.5f) * 2.f;
+            Angle = FMath::Lerp(TiltTargetAngle, 0.f, halfT);
+        }
 
         // Rotation: around TiltPivot and TiltAxis
         FVector WorldLocation = GetActorLocation(); // base position of key
@@ -300,8 +313,55 @@ void AKeyballKey::StartSharedOffsetZ(float TargetZ, float Duration)
 
 void AKeyballKey::StartTilt(const FVector& InPivot, const FVector& InAxis, float Duration, float PhaseOffset)
 {
+    FVector NewAxis = InAxis.GetSafeNormal();
+    
+    // Check if the tilt direction has changed
+    bool bDirectionChanged = bTiltActive && !TiltCurrentAxis.Equals(NewAxis, 0.1f);
+    
+    // If already tilting, capture current angle as start point
+    if (bTiltActive)
+    {
+        float currentT = (TiltTimeElapsed - TiltPhaseOffset) / TiltDuration;
+        currentT = FMath::Clamp(currentT, 0.f, 1.f);
+
+        // Calculate current angle
+        float currentAngle;
+        if (currentT < 0.5f)
+        {
+            // First half: going from start to target
+            float halfT = currentT * 2.f;
+            currentAngle = FMath::Lerp(TiltStartAngle, TiltTargetAngle, halfT);
+        }
+        else
+        {
+            // Second half: going from target back to neutral
+            float halfT = (currentT - 0.5f) * 2.f;
+            currentAngle = FMath::Lerp(TiltTargetAngle, 0.f, halfT);
+        }
+        
+        if (bDirectionChanged)
+        {
+            // If direction changed, flip the sign of the current angle
+            // This makes 23° in one direction become -23° in the opposite direction
+            TiltStartAngle = -currentAngle;
+            TiltTargetAngle = TiltMaxAngle;
+        }
+        else
+        {
+            // Same direction, continue normally
+            TiltStartAngle = currentAngle;
+            TiltTargetAngle = TiltMaxAngle;
+        }
+    }
+    else
+    {
+        TiltStartAngle = 0.f; // Start from neutral if not currently tilting
+        TiltTargetAngle = TiltMaxAngle;
+    }
+    
     TiltPivot = InPivot;
-    TiltAxis = InAxis.GetSafeNormal();
+    TiltAxis = NewAxis;
+    TiltCurrentAxis = NewAxis;
     TiltTimeElapsed = 0.f;
     TiltDuration = Duration;
     TiltPhaseOffset = PhaseOffset;
