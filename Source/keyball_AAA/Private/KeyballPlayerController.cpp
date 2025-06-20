@@ -8,6 +8,7 @@
 #include "Engine/Engine.h"
 #include "InputCoreTypes.h"
 #include "Internationalization/Text.h"
+#include "Net/UnrealNetwork.h"
 
 AKeyballPlayerController::AKeyballPlayerController()
 {
@@ -19,7 +20,6 @@ AKeyballPlayerController::AKeyballPlayerController()
     doubleTapT = 0.4f;
     
     UnrealKeyLabelToNaturalGlyphMap.Add("UnknownCharCode_246", "ö");
-    UnrealKeyLabelToNaturalGlyphMap.Add("ö", "ö");
     UnrealKeyLabelToNaturalGlyphMap.Add("Ö", "ö");
     UnrealKeyLabelToNaturalGlyphMap.Add("ä", "ä");
     UnrealKeyLabelToNaturalGlyphMap.Add("Ä", "ä");
@@ -51,7 +51,7 @@ AKeyballPlayerController::AKeyballPlayerController()
     UnrealKeyLabelToNaturalGlyphMap.Add("LeftBrace", "{");
     UnrealKeyLabelToNaturalGlyphMap.Add("RightBrace", "}");
     // UnrealKeyLabelToNaturalGlyphMap.Add("ö", ";");
-    // UnrealKeyLabelToNaturalGlyphMap.Add("Ö", ";");
+    // UnrealKeyLabelToNaturalGlyphMap.Add("ö", ";");
     UnrealKeyLabelToNaturalGlyphMap.Add("ä", "'");
     UnrealKeyLabelToNaturalGlyphMap.Add("ü", "/");
     UnrealKeyLabelToNaturalGlyphMap.Add("ß", "=");
@@ -61,15 +61,15 @@ void AKeyballPlayerController::BeginPlay()
 {
     Super::BeginPlay();
 
-    for (int i = 0; i < layout.Num(); i++)
-  GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("layout[29] codepoint: %04x"), layout[29][0]));
+    // for (int i = 0; i < layout.Num(); i++)
+    // GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("layout[29] codepoint: %04x"), layout[29][0]));
 
-    FString layoutasstring2 = "";
-    for (const FString& s : layout)
-    {
-        layoutasstring2 += s + ", ";
-    }
-    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("AAAAABeginPlay: %s"), *layoutasstring2));
+    // FString layoutasstring2 = "";
+    // for (const FString& s : layout)
+    // {
+    //     layoutasstring2 += s + ", ";
+    // }
+    // GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("AAAAABeginPlay: %s"), *layoutasstring2));
 
     for (TActorIterator<AKeyballKeyboard> It(GetWorld()); It; ++It)
     {
@@ -83,28 +83,56 @@ void AKeyballPlayerController::BeginPlay()
     }
 }
 
+void AKeyballPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+    DOREPLIFETIME(AKeyballPlayerController, layout);
+    DOREPLIFETIME(AKeyballPlayerController, CurrentlyPressedIndicesP1);
+    DOREPLIFETIME(AKeyballPlayerController, CurrentlyPressedIndicesP2);
+    DOREPLIFETIME(AKeyballPlayerController, leftMagic);
+    DOREPLIFETIME(AKeyballPlayerController, rightMagic);
+    DOREPLIFETIME(AKeyballPlayerController, LastPressTimeP1);
+    DOREPLIFETIME(AKeyballPlayerController, LastPressTimeP2);
+    DOREPLIFETIME(AKeyballPlayerController, doubleTapT);
+}
+
 bool AKeyballPlayerController::InputKey(FKey Key, EInputEvent EventType, float AmountDepressed, bool bGamepad)
 {
     if (EventType == IE_Pressed)
     {
-        OnAnyKeyPressed(Key);
+        if (IsLocalController())
+        {
+            ServerHandleKeyPress(Key);
+        }
     }
     else if (EventType == IE_Released)
     {
-        OnAnyKeyReleased(Key);
+        if (IsLocalController())
+        {
+            ServerHandleKeyRelease(Key);
+        }
     }
-
     return APlayerController::InputKey(Key, EventType, AmountDepressed, bGamepad);
 }
 
-void AKeyballPlayerController::OnAnyKeyPressed(FKey PressedKey)
+// Server RPCs
+void AKeyballPlayerController::ServerHandleKeyPress_Implementation(const FKey& PressedKey)
 {
-    UE_LOG(LogTemp, Log, TEXT("AAAAAOnAnyKeyPressed: %s"), *PressedKey.ToString());
-    UE_LOG(LogTemp, Log, TEXT("AAAAAOnAnyKeyPressed fname: %s"), *PressedKey.GetFName().ToString());
+    HandleKeyPress_Server(PressedKey);
+}
+bool AKeyballPlayerController::ServerHandleKeyPress_Validate(const FKey& PressedKey) { return true; }
+
+void AKeyballPlayerController::ServerHandleKeyRelease_Implementation(const FKey& ReleasedKey)
+{
+    HandleKeyRelease_Server(ReleasedKey);
+}
+bool AKeyballPlayerController::ServerHandleKeyRelease_Validate(const FKey& ReleasedKey) { return true; }
+
+// Move the logic from OnAnyKeyPressed to this server-side function
+void AKeyballPlayerController::HandleKeyPress_Server(const FKey& PressedKey)
+{
     int32 Index = GetIndexFromLayoutKey(PressedKey);
     if (Index < 0) return;
-
-    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("AAAAAOnAnyKeyPressed: %s, %d"), *PressedKey.ToString(), Index));
 
     // Magic key logic
     if (PressedKey == EKeys::LeftShift)
@@ -146,7 +174,6 @@ void AKeyballPlayerController::OnAnyKeyPressed(FKey PressedKey)
         if (ComboDetector)
         {
             KeyballCombo = ComboDetector->DetectKeyballCombo(CurrentlyPressedIndicesP2);
-            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Combo type: %s"), *UEnum::GetValueAsString(KeyballCombo.MoveType)));
         }
         if (Keyboard)
         {
@@ -155,14 +182,13 @@ void AKeyballPlayerController::OnAnyKeyPressed(FKey PressedKey)
     }
 }
 
-void AKeyballPlayerController::OnAnyKeyReleased(FKey ReleasedKey)
+// Move the logic from OnAnyKeyReleased to this server-side function
+void AKeyballPlayerController::HandleKeyRelease_Server(const FKey& ReleasedKey)
 {
     int32 Index = GetIndexFromLayoutKey(ReleasedKey);
     if (Index < 0) return;
 
     int32 PlayerIndex = GetPlayerForIndex(Index);
-
-    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("AAAAAOnAnyKeyReleased: %s, %d"), *ReleasedKey.ToString(), Index));
 
     // Magic key logic
     if (ReleasedKey == EKeys::LeftShift)
@@ -209,9 +235,9 @@ int32 AKeyballPlayerController::GetIndexFromLayoutKey(const FKey& InKey) const
 
     GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("FName: %s | ToString: %s"), *KeyString, *AltKeyString));
 
-    const FString* MappedGlyph = UnrealKeyLabelToNaturalGlyphMap.Find(NormalizeString(KeyString));
+    const FString* MappedGlyph = UnrealKeyLabelToNaturalGlyphMap.Find(KeyString);
     if (!MappedGlyph)
-        MappedGlyph = UnrealKeyLabelToNaturalGlyphMap.Find(NormalizeString(AltKeyString));
+        MappedGlyph = UnrealKeyLabelToNaturalGlyphMap.Find(AltKeyString);
 
     if (MappedGlyph)
     {
@@ -220,7 +246,7 @@ int32 AKeyballPlayerController::GetIndexFromLayoutKey(const FKey& InKey) const
     }
 
     GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("NO MAPPED GLYPH: %s"), *KeyString));
-    int32 layoutIndex = layout.Find(NormalizeString(KeyString)); // fallback
+    int32 layoutIndex = layout.Find(KeyString); // fallback
     // log the layoutIndex
     GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("FALLBACK: %d"), layoutIndex));
     return layoutIndex;
@@ -237,7 +263,3 @@ void AKeyballPlayerController::updateLayout(const TArray<FString>& NewLayout)
     layout = NewLayout;
 }
 
-FString AKeyballPlayerController::NormalizeString(const FString& In) const
-{
-    return FText::FromString(In).ToLower().ToString(); // force normalized lowercase
-}

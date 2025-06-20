@@ -20,32 +20,51 @@ class KEYBALL_AAA_API AKeyballPlayerController : public APlayerController
 public:
     AKeyballPlayerController();
 
+    UFUNCTION(BlueprintCallable)
     void updateLayout(const TArray<FString>& NewLayout);
+
+    // Server RPCs for key press/release
+    UFUNCTION(Server, Reliable, WithValidation)
+    void ServerHandleKeyPress(const FKey& PressedKey);
+    UFUNCTION(Server, Reliable, WithValidation)
+    void ServerHandleKeyRelease(const FKey& ReleasedKey);
+
+    // Replication setup
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated)
+    TArray<FString> layout;
 
 protected:
     virtual void BeginPlay() override;
 
     int32 GetIndexFromLayoutKey(const FKey& InKey) const;
-    FString NormalizeString(const FString& In) const;
 
     virtual bool InputKey(FKey Key, EInputEvent EventType, float AmountDepressed, bool bGamepad) override;
+
+    // Add these declarations for server-side input handling
+    void HandleKeyPress_Server(const FKey& PressedKey);
+    void HandleKeyRelease_Server(const FKey& ReleasedKey);
 
 private:
     AKeyballKeyboard* Keyboard;
     UKeyballComboDetector* ComboDetector;
 
-    UPROPERTY()
+    UPROPERTY(Replicated)
     TArray<int32> CurrentlyPressedIndicesP1;
-    UPROPERTY()
+    UPROPERTY(Replicated)
     TArray<int32> CurrentlyPressedIndicesP2;
 
+    UPROPERTY(Replicated)
     bool leftMagic = false;
+    UPROPERTY(Replicated)
     bool rightMagic = false;
+    UPROPERTY(Replicated)
     TMap<int32, float> LastPressTimeP1;
+    UPROPERTY(Replicated)
     TMap<int32, float> LastPressTimeP2;
+    UPROPERTY(Replicated)
     float doubleTapT = 0.4f;
-
-    TArray<FString> layout;
 
     int32 GetPlayerForIndex(int32 Index) const;
     

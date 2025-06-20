@@ -1,5 +1,24 @@
 [
 	{
+		"name": "tabula",
+		"staticMesh": [
+			"/Game/Keys/topleft.topleft",
+			"/Game/Keys/topright.topright",
+			"/Game/Keys/bottomright.bottomright",
+			"/Game/Keys/bottomleft.bottomleft",
+			"/Game/Keys/bottom.bottom",
+			"/Game/Keys/right.right",
+			"/Game/Keys/top.top",
+			"/Game/Keys/left.left",
+			"/Game/Keys/center.center"
+		],
+		"status": "Free",
+		"active": false,
+		"keyboardType": "LessThan40",
+		"displayScale": 0.5,
+		"LessThan40Algo": "edgesThenCenter"
+	},
+	{
 		"name": "regular",
 		"staticMesh": [
 			"/Game/Keys/realisticKeyCap.realisticKeyCap"
@@ -22,25 +41,6 @@
 		"keyboardType": "LessThan40",
 		"displayScale": 0.5,
 		"LessThan40Algo": "Loop"
-	},
-	{
-		"name": "tabula",
-		"staticMesh": [
-			"/Game/Keys/topleft.topleft",
-			"/Game/Keys/topright.topright",
-			"/Game/Keys/bottomright.bottomright",
-			"/Game/Keys/bottomleft.bottomleft",
-			"/Game/Keys/bottom.bottom",
-			"/Game/Keys/right.right",
-			"/Game/Keys/top.top",
-			"/Game/Keys/left.left",
-			"/Game/Keys/center.center"
-		],
-		"status": "Free",
-		"active": false,
-		"keyboardType": "LessThan40",
-		"displayScale": 0.5,
-		"LessThan40Algo": "edgesThenCenter"
 	},
 	{
 		"name": "vw-1",
@@ -153,7 +153,6 @@
 		"displayScale": 2,
 		"LessThan40Algo": "Loop"
 	},
-	
 	{
 		"name": "nubs",
 		"staticMesh": [
@@ -165,7 +164,6 @@
 		"displayScale": 1,
 		"LessThan40Algo": "Loop"
 	},
-	
 	{
 		"name": "velum v1",
 		"staticMesh": [
