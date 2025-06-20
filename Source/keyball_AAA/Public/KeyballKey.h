@@ -186,9 +186,9 @@ private:
     // Wave animation state
     bool bWaveActive = false;
     float WaveTimeElapsed = 0.f;
-    float WaveDuration = 0.5f; // Match tilt duration exactly
+    float WaveDuration = 1.5f; // Match tilt duration exactly
     float WavePhaseOffset = 0.f;
-    float WaveAmplitude = 20.f; // Keep the higher amplitude for visibility
+    float WaveAmplitude = 23.f; // Keep the higher amplitude for visibility
     float WaveFrequency = 2.f;
     float WaveStartZ = 0.f; // Current Z position when starting new wave
     float WaveTargetZ = 0.f; // Target Z position for the wave
