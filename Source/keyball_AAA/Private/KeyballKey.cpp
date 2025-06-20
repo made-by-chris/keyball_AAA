@@ -20,7 +20,20 @@ AKeyballKey::AKeyballKey()
     SharedZDuration = 0.f;
     SharedZStart = 0.f;
     SharedZTarget = 0.f;
-    
+
+    WhackAnimPhase = EWhackAnimPhase::None;
+    WhackAnimElapsed = 0.f;
+    WhackAnimDuration = 0.f;
+    WhackStartAngle = 0.f;
+    WhackTargetAngle = 0.f;
+    WhackCurrentAngle = 0.f;
+    WhackAxis = FVector::UpVector;
+    WhackPivot = FVector::ZeroVector;
+    WhackMaxAngle = 90.f;
+    WhackReturnAngle = 45.f;
+    WhackToMaxDuration = 0.08f;
+    WhackToReturnDuration = 0.18f;
+    WhackToNeutralDuration = 0.18f;
 
     RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 
@@ -43,9 +56,6 @@ AKeyballKey::AKeyballKey()
 void AKeyballKey::BeginPlay()
 {
     Super::BeginPlay();
-
-    // TransformState.BaseTransform = GetActorTransform();
-    TransformState.LocalTransform = FTransform::Identity;
 
     MainMID = StaticMeshX->CreateDynamicMaterialInstance(0, MainMaterial);
     StaticMeshX->SetMaterial(0, MainMID);
@@ -92,9 +102,15 @@ void AKeyballKey::StartPressAnimation(bool isDoubleTap, bool magicActive)
 void AKeyballKey::StartReleaseAnimation()
 {
     TargetLocalZOffset =  0.f;
-    bWhackActive = false;
-    WhackElapsedTime = 0.f;
-    StaticMeshX->SetRelativeTransform(TransformState.LocalTransform); // reset
+    // If whack is animating (any phase except None), always start lerping to neutral
+    if (WhackAnimPhase != EWhackAnimPhase::None)
+    {
+        WhackAnimPhase = EWhackAnimPhase::ToNeutral;
+        WhackAnimElapsed = 0.f;
+        WhackAnimDuration = WhackToNeutralDuration;
+        WhackStartAngle = WhackCurrentAngle;
+        WhackTargetAngle = 0.f;
+    }
 }
 
 void AKeyballKey::UpdateKeyAnimation(float DeltaTime)
@@ -103,7 +119,7 @@ void AKeyballKey::UpdateKeyAnimation(float DeltaTime)
     CurrentLocalZOffset = FMath::FInterpTo(CurrentLocalZOffset, TargetLocalZOffset, DeltaTime, Speed);
 
     FVector LocalOffset(0, 0, CurrentLocalZOffset);
-    TransformState.LocalTransform.SetTranslation(LocalOffset);
+    FTransform ZOffsetTransform(FQuat::Identity, LocalOffset);
 
     // Calculate wave effect (translation)
     FVector WaveOffset = FVector::ZeroVector;
@@ -178,58 +194,84 @@ void AKeyballKey::UpdateKeyAnimation(float DeltaTime)
     // Combine wave and tilt effects
     FTransform CombinedTransform = TiltTransform;
     CombinedTransform.SetLocation(CombinedTransform.GetLocation() + WaveOffset);
-    SharedTransformComponent->SetRelativeTransform(CombinedTransform);
 
-    // Handle whack effect (applied to the mesh, not shared transform)
-    if (bWhackActive)
-    {
-        WhackElapsedTime += DeltaTime;
-        float t = WhackElapsedTime / WhackDuration;
+    // Whack animation state machine
+    switch (WhackAnimPhase) {
+        case EWhackAnimPhase::ToMax:
+            WhackAnimElapsed += DeltaTime;
+            {
+                float t = FMath::Clamp(WhackAnimElapsed / WhackAnimDuration, 0.f, 1.f);
+                WhackCurrentAngle = FMath::Lerp(WhackStartAngle, WhackTargetAngle, t);
+                if (t >= 1.f) {
+                    // Start lerping to return angle
+                    WhackAnimPhase = EWhackAnimPhase::ToReturn;
+                    WhackAnimElapsed = 0.f;
+                    WhackAnimDuration = WhackToReturnDuration;
+                    WhackStartAngle = WhackCurrentAngle;
+                    WhackTargetAngle = WhackReturnAngle;
+                }
+            }
+            break;
+        case EWhackAnimPhase::ToReturn:
+            WhackAnimElapsed += DeltaTime;
+            {
+                float t = FMath::Clamp(WhackAnimElapsed / WhackAnimDuration, 0.f, 1.f);
+                WhackCurrentAngle = FMath::Lerp(WhackStartAngle, WhackTargetAngle, t);
+                if (t >= 1.f) {
+                    WhackAnimPhase = EWhackAnimPhase::HoldReturn;
+                }
+            }
+            break;
+        case EWhackAnimPhase::HoldReturn:
+            WhackCurrentAngle = WhackReturnAngle;
+            break;
+        case EWhackAnimPhase::ToNeutral:
+            WhackAnimElapsed += DeltaTime;
+            {
+                float t = FMath::Clamp(WhackAnimElapsed / WhackAnimDuration, 0.f, 1.f);
+                WhackCurrentAngle = FMath::Lerp(WhackStartAngle, WhackTargetAngle, t);
+                if (t >= 1.f) {
+                    WhackAnimPhase = EWhackAnimPhase::None;
+                    WhackCurrentAngle = 0.f;
+                }
+            }
+            break;
+        case EWhackAnimPhase::None:
+        default:
+            WhackCurrentAngle = 0.f;
+            break;
+    }
 
-        float Angle;
-        if (t < 0.5f)
-        {
-            Angle = FMath::Lerp(0.f, WhackMaxAngle, t * 2.f);
-        }
-        else if (t < 1.f)
-        {
-            Angle = FMath::Lerp(WhackMaxAngle, WhackReturnAngle, (t - 0.5f) * 2.f);
-        }
-        else
-        {
-            Angle = WhackReturnAngle;
-        }
-
-        // Rotate around pivot (relative to key mesh center!)
+    // Apply whack transform if needed, always combine with Z offset
+    if (WhackAnimPhase != EWhackAnimPhase::None) {
         FTransform T1 = FTransform(FVector(-WhackPivot));
-        FTransform R = FTransform(FQuat(WhackAxis.GetSafeNormal(), FMath::DegreesToRadians(Angle)));
+        FTransform R = FTransform(FQuat(WhackAxis.GetSafeNormal(), FMath::DegreesToRadians(WhackCurrentAngle)));
         FTransform T2 = FTransform(WhackPivot);
-        FTransform Final = T2 * R * T1;
+        FTransform FinalWhack = T2 * R * T1;
+        StaticMeshX->SetRelativeTransform(FinalWhack * ZOffsetTransform);
+    } else {
+        StaticMeshX->SetRelativeTransform(ZOffsetTransform);
+    }
 
-        // Apply final whack * local press movement
-        StaticMeshX->SetRelativeTransform(Final * TransformState.LocalTransform);
-    }
-    else
-    {
-        StaticMeshX->SetRelativeTransform(TransformState.LocalTransform);
-    }
+    // Combine wave and tilt effects
+    CombinedTransform = TiltTransform;
+    CombinedTransform.SetLocation(CombinedTransform.GetLocation() + WaveOffset);
+    SharedTransformComponent->SetRelativeTransform(CombinedTransform);
 }
-
 
 void AKeyballKey::TriggerWhack(const FVector& InAxis, EKeyballDirection Direction)
 {
     WhackAxis = InAxis;
-    WhackElapsedTime = 0.f;
-    bWhackActive = true;
-
+    WhackPivot = FVector::ZeroVector;
+    WhackAnimPhase = EWhackAnimPhase::ToMax;
+    WhackAnimElapsed = 0.f;
+    WhackAnimDuration = WhackToMaxDuration;
+    WhackStartAngle = 0.f;
+    WhackTargetAngle = WhackMaxAngle;
+    WhackCurrentAngle = 0.f;
+    // Set pivot if available
     if (TopFacePivots.Contains(Direction))
-    {
         WhackPivot = TopFacePivots[Direction];
-    }
-    else
-    {
-        WhackPivot = FVector::ZeroVector;
-    }
 }
 
 void AKeyballKey::CacheTopFacePivots()

@@ -152,12 +152,24 @@ void AKeyballKeyboard::Tick(float DeltaTime)
         }
     }
 
+    // We need to keep animating keys that are still animating, even if not in ActiveKeys
+    TArray<int32> KeysToRemove;
     for (auto& Pair : ActiveKeys)
     {
         if (AKeyballKey* Key = Pair.Value)
         {
             Key->UpdateKeyAnimation(DeltaTime);
+            // If the key is no longer animating (not pressed, not whack, not returning), remove from ActiveKeys
+            bool whackAnimating = (Key->WhackAnimPhase == AKeyballKey::EWhackAnimPhase::ToMax || Key->WhackAnimPhase == AKeyballKey::EWhackAnimPhase::ToReturn || Key->WhackAnimPhase == AKeyballKey::EWhackAnimPhase::ToNeutral);
+            if (!whackAnimating && Key->WhackAnimPhase != AKeyballKey::EWhackAnimPhase::HoldReturn && Key->TargetLocalZOffset == 0.f && Key->CurrentLocalZOffset == 0.f && !Key->bWaveActive && !Key->bTiltActive && !Key->bSharedZActive)
+            {
+                KeysToRemove.Add(Pair.Key);
+            }
         }
+    }
+    for (int32 KeyIndex : KeysToRemove)
+    {
+        ActiveKeys.Remove(KeyIndex);
     }
 }
 
