@@ -345,12 +345,33 @@ void AKeyballKeyboard::ApplyWaveCombo(const FKeyballComboResult& Combo)
         }
     }
 
+    // Determine wave direction based on combo direction
+    bool bReverseWave = false;
+    switch (Combo.Direction)
+    {
+        case EKeyballDirection::Right:
+        case EKeyballDirection::Down:
+            bReverseWave = false; // Start from first key (index 0)
+            break;
+        case EKeyballDirection::Left:
+        case EKeyballDirection::Up:
+            bReverseWave = true; // Start from last key
+            break;
+        default:
+            bReverseWave = false; // fallback
+            break;
+    }
+
     for (int32 i = 0; i < AffectedKeys.Num(); ++i)
     {
         int32 Index = AffectedKeys[i];
         AKeyballKey* Key = KeyMap[Index];
-        float PhaseOffset = i * PI / 4.f; // customize this for smoother spacing
-        Key->StartWave(PhaseOffset);
+        
+        // Reverse the sequence index if needed
+        int32 SequenceIndex = bReverseWave ? (AffectedKeys.Num() - 1 - i) : i;
+        
+        float PhaseOffset = SequenceIndex * 0.1f; // Match tilt's stagger timing exactly (0.1s delay between keys)
+        Key->StartWave(PhaseOffset, bReverseWave);
     }
 }
 

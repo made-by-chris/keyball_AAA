@@ -103,32 +103,84 @@ void AKeyballKey::UpdateKeyAnimation(float DeltaTime)
     CurrentLocalZOffset = FMath::FInterpTo(CurrentLocalZOffset, TargetLocalZOffset, DeltaTime, Speed);
 
     FVector LocalOffset(0, 0, CurrentLocalZOffset);
-
     TransformState.LocalTransform.SetTranslation(LocalOffset);
 
-    // Base translation (from actor's world placement)
-    FTransform BaseLocal = FTransform::Identity;
-    BaseLocal.SetTranslation(FVector::ZeroVector); // We now let the actor handle base location
-
-    // wave is a shared layer effect, so it is not mutually exclusive with the whack 
+    // Calculate wave effect (translation)
+    FVector WaveOffset = FVector::ZeroVector;
     if (bWaveActive)
     {
         WaveTimeElapsed += DeltaTime;
+        float t = (WaveTimeElapsed - WavePhaseOffset) / WaveDuration;
+        t = FMath::Clamp(t, 0.f, 1.f);
 
-        float Progress = WaveTimeElapsed / WaveDuration;
-        float Phase = WaveFrequency * 2.f * PI * WaveTimeElapsed + WavePhaseOffset;
-        float OffsetZ = FMath::Sin(Phase) * WaveAmplitude;
+        // Single cycle: go from start to target, then back to neutral
+        float OffsetZ;
+        if (t < 0.5f)
+        {
+            // First half: go from start to target
+            float halfT = t * 2.f;
+            OffsetZ = FMath::Lerp(WaveStartZ, WaveTargetZ, halfT);
+        }
+        else
+        {
+            // Second half: go from target back to neutral
+            float halfT = (t - 0.5f) * 2.f;
+            OffsetZ = FMath::Lerp(WaveTargetZ, 0.f, halfT);
+        }
 
-        FVector SharedOffset(0, 0, OffsetZ);
-        SharedTransformComponent->SetRelativeLocation(SharedOffset);
+        WaveOffset = FVector(0, 0, OffsetZ);
 
-        if (WaveTimeElapsed >= WaveDuration)
+        if (WaveTimeElapsed >= WaveDuration + WavePhaseOffset)
         {
             StopWave();
         }
     }
 
+    // Calculate tilt effect (rotation)
+    FTransform TiltTransform = FTransform::Identity;
+    if (bTiltActive)
+    {
+        TiltTimeElapsed += DeltaTime;
+        float t = (TiltTimeElapsed - TiltPhaseOffset) / TiltDuration;
+        t = FMath::Clamp(t, 0.f, 1.f);
 
+        // Lerp from start angle to target angle, then back to neutral
+        float Angle;
+        if (t < 0.5f)
+        {
+            // First half: go from start to target
+            float halfT = t * 2.f;
+            Angle = FMath::Lerp(TiltStartAngle, TiltTargetAngle, halfT);
+        }
+        else
+        {
+            // Second half: go from target back to neutral
+            float halfT = (t - 0.5f) * 2.f;
+            Angle = FMath::Lerp(TiltTargetAngle, 0.f, halfT);
+        }
+
+        // Rotation: around TiltPivot and TiltAxis
+        FVector WorldLocation = GetActorLocation(); // base position of key
+        FVector LocalPivotOffset = TiltPivot - WorldLocation;
+
+        FTransform T1 = FTransform(FVector(-LocalPivotOffset));
+        FTransform R = FTransform(FQuat(TiltAxis, FMath::DegreesToRadians(Angle)));
+        FTransform T2 = FTransform(FVector(LocalPivotOffset));
+
+        TiltTransform = T2 * R * T1;
+
+        if (TiltTimeElapsed >= TiltDuration + TiltPhaseOffset)
+        {
+            StopTilt();
+        }
+    }
+
+    // Combine wave and tilt effects
+    FTransform CombinedTransform = TiltTransform;
+    CombinedTransform.SetLocation(CombinedTransform.GetLocation() + WaveOffset);
+    SharedTransformComponent->SetRelativeTransform(CombinedTransform);
+
+    // Handle whack effect (applied to the mesh, not shared transform)
     if (bWhackActive)
     {
         WhackElapsedTime += DeltaTime;
@@ -161,44 +213,6 @@ void AKeyballKey::UpdateKeyAnimation(float DeltaTime)
     {
         StaticMeshX->SetRelativeTransform(TransformState.LocalTransform);
     }
-
-    if (bTiltActive)
-    {
-        TiltTimeElapsed += DeltaTime;
-        float t = (TiltTimeElapsed - TiltPhaseOffset) / TiltDuration;
-        t = FMath::Clamp(t, 0.f, 1.f);
-
-        // Lerp from start angle to target angle, then back to neutral
-        float Angle;
-        if (t < 0.5f)
-        {
-            // First half: go from start to target
-            float halfT = t * 2.f;
-            Angle = FMath::Lerp(TiltStartAngle, TiltTargetAngle, halfT);
-        }
-        else
-        {
-            // Second half: go from target back to neutral
-            float halfT = (t - 0.5f) * 2.f;
-            Angle = FMath::Lerp(TiltTargetAngle, 0.f, halfT);
-        }
-
-        // Rotation: around TiltPivot and TiltAxis
-        FVector WorldLocation = GetActorLocation(); // base position of key
-        FVector LocalPivotOffset = TiltPivot - WorldLocation;
-
-        FTransform T1 = FTransform(FVector(-LocalPivotOffset));
-        FTransform R = FTransform(FQuat(TiltAxis, FMath::DegreesToRadians(Angle)));
-        FTransform T2 = FTransform(FVector(LocalPivotOffset));
-
-        SharedTransformComponent->SetRelativeTransform(T2 * R * T1);
-
-        if (TiltTimeElapsed >= TiltDuration + TiltPhaseOffset)
-        {
-            StopTilt();
-        }
-    }
-
 }
 
 
@@ -287,10 +301,55 @@ void AKeyballKey::OnConstruction(const FTransform& Transform)
     Super::OnConstruction(Transform);
 }
 
-void AKeyballKey::StartWave(float InPhaseOffset)
+void AKeyballKey::StartWave(float InPhaseOffset, bool bReverseDirection)
 {
+    // If already waving, capture current position as start point
+    if (bWaveActive)
+    {
+        float currentT = (WaveTimeElapsed - WavePhaseOffset) / WaveDuration;
+        currentT = FMath::Clamp(currentT, 0.f, 1.f);
+
+        // Calculate current Z position
+        float currentZ;
+        if (currentT < 0.5f)
+        {
+            // First half: going from start to target
+            float halfT = currentT * 2.f;
+            currentZ = FMath::Lerp(WaveStartZ, WaveTargetZ, halfT);
+        }
+        else
+        {
+            // Second half: going from target back to neutral
+            float halfT = (currentT - 0.5f) * 2.f;
+            currentZ = FMath::Lerp(WaveTargetZ, 0.f, halfT);
+        }
+        
+        // Check if the wave direction has changed
+        bool bDirectionChanged = bWaveDirectionReversed != bReverseDirection;
+        
+        if (bDirectionChanged)
+        {
+            // If direction changed, flip the sign of the current position
+            // This makes +15 in one direction become -15 in the opposite direction
+            WaveStartZ = -currentZ;
+            WaveTargetZ = WaveAmplitude;
+        }
+        else
+        {
+            // Same direction, continue normally
+            WaveStartZ = currentZ;
+            WaveTargetZ = WaveAmplitude;
+        }
+    }
+    else
+    {
+        WaveStartZ = 0.f; // Start from neutral if not currently waving
+        WaveTargetZ = WaveAmplitude;
+    }
+    
     WaveTimeElapsed = 0.f;
     WavePhaseOffset = InPhaseOffset;
+    bWaveDirectionReversed = bReverseDirection;
     bWaveActive = true;
 }
 
@@ -298,7 +357,7 @@ void AKeyballKey::StopWave()
 {
     bWaveActive = false;
     WaveTimeElapsed = 0.f;
-    SharedTransformComponent->SetRelativeLocation(FVector::ZeroVector);
+    // Don't reset SharedTransformComponent - let the animation system handle it
 }
 
 
@@ -372,5 +431,5 @@ void AKeyballKey::StopTilt()
 {
     bTiltActive = false;
     TiltTimeElapsed = 0.f;
-    SharedTransformComponent->SetRelativeTransform(FTransform::Identity);
+    // Don't reset SharedTransformComponent - let the animation system handle it
 }

@@ -94,7 +94,7 @@ public:
     void TriggerWhack(const FVector& InAxis, EKeyballDirection Direction);
     void SetCustomZOffset(float NewZ);
 
-    void StartWave(float InPhaseOffset);
+    void StartWave(float InPhaseOffset, bool bReverseDirection = false);
     void StopWave();
 
     bool bSharedZActive = false;
@@ -186,10 +186,13 @@ private:
     // Wave animation state
     bool bWaveActive = false;
     float WaveTimeElapsed = 0.f;
-    float WaveDuration = 2.f;
+    float WaveDuration = 0.5f; // Match tilt duration exactly
     float WavePhaseOffset = 0.f;
-    float WaveAmplitude = 15.f;
+    float WaveAmplitude = 20.f; // Keep the higher amplitude for visibility
     float WaveFrequency = 2.f;
+    float WaveStartZ = 0.f; // Current Z position when starting new wave
+    float WaveTargetZ = 0.f; // Target Z position for the wave
+    bool bWaveDirectionReversed = false; // Track wave direction for smooth transitions
 
     bool bIsDoubleTapActive = false;
 };
