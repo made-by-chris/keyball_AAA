@@ -1,3 +1,4 @@
+// awesome! I wonder if we can work the same magic for "whack" which quick lerps to the end point then gently eases to half-way. that's all fine so far.. but you know what im gonna say. if its released, it should lerp back to its neutral rotation. not snap. (whack is on the staticMeshX level btw, a diff transform level to wave and tilt), and if reinvoked, it should not reset itself to neutral first - just start from where it is
 // KeyballKey.h
 
 #pragma once
