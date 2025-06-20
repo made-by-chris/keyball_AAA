@@ -451,7 +451,10 @@ void AKeyballKeyboard::ApplyTiltCombo(const FKeyballComboResult& Combo)
     {
         AKeyballKey* Key = KeyMap[AxisKeys[i]];
         if (!Key) continue;
-        Key->StartTilt(PivotWorld, AxisVector, 1.5f);
+        
+        // Add phase offset so keys tilt with slight delay
+        float PhaseOffset = i * 0.1f; // 0.2 second delay between each key
+        Key->StartTilt(PivotWorld, AxisVector, 0.5f, PhaseOffset);
     }
 }
 

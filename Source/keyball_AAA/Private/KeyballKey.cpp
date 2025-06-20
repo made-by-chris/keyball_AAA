@@ -165,7 +165,7 @@ void AKeyballKey::UpdateKeyAnimation(float DeltaTime)
     if (bTiltActive)
     {
         TiltTimeElapsed += DeltaTime;
-        float t = TiltTimeElapsed / TiltDuration;
+        float t = (TiltTimeElapsed - TiltPhaseOffset) / TiltDuration;
         t = FMath::Clamp(t, 0.f, 1.f);
 
         float Angle = FMath::Sin(t * PI) * TiltMaxAngle; // Up and down once
@@ -180,7 +180,7 @@ void AKeyballKey::UpdateKeyAnimation(float DeltaTime)
 
         SharedTransformComponent->SetRelativeTransform(T2 * R * T1);
 
-        if (TiltTimeElapsed >= TiltDuration)
+        if (TiltTimeElapsed >= TiltDuration + TiltPhaseOffset)
         {
             StopTilt();
         }
@@ -298,12 +298,13 @@ void AKeyballKey::StartSharedOffsetZ(float TargetZ, float Duration)
     SharedZTarget = TargetZ;
 }
 
-void AKeyballKey::StartTilt(const FVector& InPivot, const FVector& InAxis, float Duration)
+void AKeyballKey::StartTilt(const FVector& InPivot, const FVector& InAxis, float Duration, float PhaseOffset)
 {
     TiltPivot = InPivot;
     TiltAxis = InAxis.GetSafeNormal();
     TiltTimeElapsed = 0.f;
     TiltDuration = Duration;
+    TiltPhaseOffset = PhaseOffset;
     bTiltActive = true;
 }
 

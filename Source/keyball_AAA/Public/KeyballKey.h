@@ -104,7 +104,7 @@ public:
     float SharedZTarget = 0.f;
 
     void StartSharedOffsetZ(float TargetZ, float Duration);
-    void StartTilt(const FVector& InPivot, const FVector& InAxis, float Duration = 1.5f);
+    void StartTilt(const FVector& InPivot, const FVector& InAxis, float Duration = 1.5f, float PhaseOffset = 0.0f);
     void StopTilt();
 
 
@@ -113,8 +113,9 @@ public:
     // Tilt animation
     bool bTiltActive = false;
     float TiltTimeElapsed = 0.f;
-    float TiltDuration = 1.5f;
-    float TiltMaxAngle = 6.f; // degrees
+    float TiltDuration = 0.5f;
+    float TiltMaxAngle = 23.f; // degrees
+    float TiltPhaseOffset = 0.f; // Phase offset for staggering
 
     FVector TiltPivot = FVector::ZeroVector;
     FVector TiltAxis = FVector::RightVector; // defaults to horizontal row
