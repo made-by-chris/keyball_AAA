@@ -260,8 +260,8 @@ void AKeyballKey::UpdateOutline(EKeyLEDState NewState, FKeyballComboResult Combo
         case EKeyballMoveType::Tilt:
             ColorToSet = TiltColor;
             break;
-        case EKeyballMoveType::Diagonal:
-            ColorToSet = DiagonalColor;
+        case EKeyballMoveType::Terrain:
+            ColorToSet = TerrainColor;
             break;
     }
 

@@ -86,7 +86,7 @@ public:
     FLinearColor TiltColor = FLinearColor(0,1,0,1);
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Keyball|Visuals")
-    FLinearColor DiagonalColor = FLinearColor(0,1,0,1);
+    FLinearColor TerrainColor = FLinearColor(0,1,0,1);
 
 
     EKeyLEDState CurrentState = EKeyLEDState::Inactive;
@@ -123,8 +123,8 @@ public:
 
 
 
-    // void StartDiagonal();
-    // void StopDiagonal();
+    // void StartTerrain();
+    // void StopTerrain();
 
     UFUNCTION(BlueprintCallable, Category = "Keyball|Animation")
     void UpdateKeyAnimation(float DeltaTime);

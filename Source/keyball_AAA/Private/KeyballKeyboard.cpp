@@ -229,8 +229,8 @@ void AKeyballKeyboard::ApplyComboEffect(const FKeyballComboResult& Combo)
         case EKeyballMoveType::Tilt:
             ApplyTiltCombo(Combo);
             break;
-        case EKeyballMoveType::Diagonal:
-            ApplyDiagonalCombo(Combo);
+        case EKeyballMoveType::Terrain:
+            ApplyTerrainCombo(Combo);
             break;
 
         // Future cases:
@@ -283,8 +283,6 @@ void AKeyballKeyboard::OnComboTriggered(const FKeyballComboResult& Combo)
 
 void AKeyballKeyboard::ApplyStairsCombo(const FKeyballComboResult& Combo)
 {
-    if (Combo.KeysIndex.Num() != 3) return;
-
     TArray<float> StepHeights = { 
         AKeyballKey::GenericKeyPressZOffset * 1, 
         AKeyballKey::GenericKeyPressZOffset * 2, 
@@ -307,8 +305,6 @@ void AKeyballKeyboard::ApplyStairsCombo(const FKeyballComboResult& Combo)
 
 void AKeyballKeyboard::ApplyWaveCombo(const FKeyballComboResult& Combo)
 {
-    if (Combo.KeysIndex.Num() < 2) return;
-
     int32 StartIndex = Combo.KeysIndex[0];
     int32 EndIndex = Combo.KeysIndex.Last();
 
@@ -459,16 +455,15 @@ void AKeyballKeyboard::ApplyTiltCombo(const FKeyballComboResult& Combo)
     }
 }
 
-void AKeyballKeyboard::ApplyDiagonalCombo(const FKeyballComboResult& Combo)
+void AKeyballKeyboard::ApplyTerrainCombo(const FKeyballComboResult& Combo)
 {
-    if (Combo.KeysIndex.Num() != 2) return;
     int32 Start = Combo.KeysIndex[0];
     int32 End = Combo.KeysIndex[1];
 
     int32 StartRow = Start / 10, StartCol = Start % 10;
     int32 EndRow = End / 10, EndCol = End % 10;
 
-    // Determine which side this diagonal affects
+    // Determine which side this terrain affects
     int32 Section = (StartCol <= 4) ? 0 : 1;
     int32 ColMin = (Section == 0) ? 0 : 5;
     int32 ColMax = (Section == 0) ? 4 : 9;
@@ -500,12 +495,14 @@ void AKeyballKeyboard::ApplyDiagonalCombo(const FKeyballComboResult& Combo)
     // Set the new targets for this side and start lerping
     SetSideTargetZ(Section, NewTargets);
     
-    // Set a timer to reset this side back to neutral after some time
-    FTimerHandle ResetTimerHandle;
+    // Debounce the timer - clear any existing timer for this side and set a new one
+    FTimerHandle& TimerHandle = (Section == 0) ? LeftSideTerrainTimerHandle : RightSideTerrainTimerHandle;
+    GetWorldTimerManager().ClearTimer(TimerHandle);
+    
     GetWorldTimerManager().SetTimer(
-        ResetTimerHandle,
+        TimerHandle,
         [this, Section]() { ResetSideToNeutral(Section); },
-        6.0f, // 6 second duration
+        TerrainDuration, // Use the class member variable
         false
     );
 }

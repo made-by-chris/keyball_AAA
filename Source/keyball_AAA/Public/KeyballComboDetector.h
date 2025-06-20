@@ -13,7 +13,7 @@ enum class EKeyballMoveType : uint8
     Stairs,
     Wave,
     Tilt,
-    Diagonal
+    Terrain
 };
 
 UENUM(BlueprintType)

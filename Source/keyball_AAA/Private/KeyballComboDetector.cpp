@@ -14,9 +14,9 @@ FKeyballComboResult UKeyballComboDetector::DetectKeyballCombo(const TArray<int32
 
     FKeyballComboResult Result;
 
-    // Diagonal detection 0,34 
-    // left side diagonals are (0,34 - 34,0) (4,30 - 30,4)
-    // right side diagonals are (5,39 - 39,5) (35,9 - 9,35)
+    // Terrain detection 0,34 
+    // left side terrains are (0,34 - 34,0) (4,30 - 30,4)
+    // right side terrains are (5,39 - 39,5) (35,9 - 9,35)
     // go through pressedIndices in pairs and see if any are present
     for (int32 i = 0; i < PressedIndices.Num() - 1; i++)
     {
@@ -44,7 +44,7 @@ FKeyballComboResult UKeyballComboDetector::DetectKeyballCombo(const TArray<int32
         }
         if (bGoodPair)
         {
-            Result.MoveType = EKeyballMoveType::Diagonal;
+            Result.MoveType = EKeyballMoveType::Terrain;
             Result.KeysIndex = {PressedIndices[i], PressedIndices[i + 1]};
             Result.bOverBorder = IsOverBorder(PressedIndices[i], PressedIndices[i + 1]);
             return Result;

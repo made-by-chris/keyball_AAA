@@ -72,7 +72,7 @@ protected:
     void ApplyStairsCombo(const FKeyballComboResult& Combo);
     void ApplyWaveCombo(const FKeyballComboResult& Combo);
     void ApplyTiltCombo(const FKeyballComboResult& Combo);
-    void ApplyDiagonalCombo(const FKeyballComboResult& Combo);
+    void ApplyTerrainCombo(const FKeyballComboResult& Combo);
     
     // Per-side target Z management - always lerping
     TMap<int32, float> LeftSideTargetZ;
@@ -88,6 +88,10 @@ protected:
     void ResetSideToNeutral(int32 Side);
     int32 GetSideFromIndex(int32 Index) const; // 0 = left, 1 = right
     
+    // Timer handles for debouncing terrain effects
+    FTimerHandle LeftSideTerrainTimerHandle;
+    FTimerHandle RightSideTerrainTimerHandle;
+    
     bool bSharedZActive = false;
     float SharedZTimeElapsed = 0.f;
     float SharedZDuration = 0.f;
@@ -96,10 +100,11 @@ protected:
 
     void StartSharedOffsetZ(float TargetZ, float Duration);
     // void ApplyTiltCombo(const FKeyballComboResult& Combo);
-    // void ApplyDiagonalCombo(const FKeyballComboResult& Combo);
+    // void ApplyTerrainCombo(const FKeyballComboResult& Combo);
     // and later, seesaw, bowl, curl, conveyor force, catapult/"lob", etc.
 
-    float TerrainZOffset = 50.f;
+    float TerrainZOffset = 40.f;
+    float TerrainDuration = 6.f;
 };
 
 
