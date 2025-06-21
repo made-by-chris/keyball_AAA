@@ -2,6 +2,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "DrawDebugHelpers.h"
 #include "KeyballComboDetector.h"
+#include "Kismet/GameplayStatics.h"
 
 // Define the static member at file scope
 const float AKeyballKey::GenericKeyPressZOffset = 8.f;
@@ -90,6 +91,8 @@ void AKeyballKey::Tick(float DeltaTime)
         }
     }
 
+    bool bIsKeyHeld = false; // <-- Replace with real input
+    UpdateCharge(DeltaTime, bIsKeyHeld);
 }
 
 void AKeyballKey::StartPressAnimation(bool isDoubleTap, bool magicActive)
@@ -97,6 +100,7 @@ void AKeyballKey::StartPressAnimation(bool isDoubleTap, bool magicActive)
     TargetLocalZOffset = GenericKeyPressZOffset;
     bMagicActive = magicActive;
     bIsDoubleTapActive = isDoubleTap;
+    ChargeTime = 0.0f;
 }
 
 void AKeyballKey::StartReleaseAnimation()
@@ -111,6 +115,7 @@ void AKeyballKey::StartReleaseAnimation()
         WhackStartAngle = WhackCurrentAngle;
         WhackTargetAngle = 0.f;
     }
+    ResetCharge();
 }
 
 void AKeyballKey::UpdateKeyAnimation(float DeltaTime)
@@ -261,17 +266,53 @@ void AKeyballKey::UpdateKeyAnimation(float DeltaTime)
 
 void AKeyballKey::TriggerWhack(const FVector& InAxis, EKeyballDirection Direction)
 {
+    // Calculate total animation duration based on charge level.
+    float TotalDuration;
+    if (ChargeLevel <= 1.0f)
+    {
+        // Map from [0, 1] charge to [0.6, 0.3] duration. Lower charge = slower animation.
+        TotalDuration = FMath::GetMappedRangeValueClamped(FVector2D(0.f, 1.f), FVector2D(0.6f, 0.3f), ChargeLevel);
+    }
+    else
+    {
+        // Map from [1, MaxChargeLevel] charge to [0.3, 0.2] duration. Higher charge = faster animation.
+        TotalDuration = FMath::GetMappedRangeValueClamped(FVector2D(1.f, MaxChargeLevel), FVector2D(0.3f, 0.2f), ChargeLevel);
+    }
+
+    // Dynamically set the duration for the animation phases, maintaining their original ratio.
+    // Original: ToMax=0.08, ToReturn=0.18. Total=0.26. Ratio ~30%/70%.
+    WhackToMaxDuration = TotalDuration * 0.3f;
+    WhackToReturnDuration = TotalDuration * 0.7f;
+
+    // Play release sound based on charge
+    if (ChargeLevel >= MaxChargeLevel - 0.01f)
+    {
+        if (WhackReleaseChargedSound)
+            UGameplayStatics::PlaySoundAtLocation(this, WhackReleaseChargedSound, GetActorLocation());
+    }
+    else if (ChargeLevel >= 1.0f)
+    {
+        if (WhackReleaseNormalSound)
+            UGameplayStatics::PlaySoundAtLocation(this, WhackReleaseNormalSound, GetActorLocation());
+    }
+    else
+    {
+        if (WhackReleaseUnderchargedSound)
+            UGameplayStatics::PlaySoundAtLocation(this, WhackReleaseUnderchargedSound, GetActorLocation());
+    }
+
     WhackAxis = InAxis;
     WhackPivot = FVector::ZeroVector;
     WhackAnimPhase = EWhackAnimPhase::ToMax;
     WhackAnimElapsed = 0.f;
-    WhackAnimDuration = WhackToMaxDuration;
+    WhackAnimDuration = WhackToMaxDuration; // Use the new dynamic duration
     WhackStartAngle = 0.f;
     WhackTargetAngle = WhackMaxAngle;
     WhackCurrentAngle = 0.f;
     // Set pivot if available
     if (TopFacePivots.Contains(Direction))
         WhackPivot = TopFacePivots[Direction];
+    ResetCharge();
 }
 
 void AKeyballKey::CacheTopFacePivots()
@@ -474,4 +515,63 @@ void AKeyballKey::StopTilt()
     bTiltActive = false;
     TiltTimeElapsed = 0.f;
     // Don't reset SharedTransformComponent - let the animation system handle it
+}
+
+void AKeyballKey::UpdateCharge(float DeltaTime, bool bIsKeyHeld)
+{
+    float PrevChargeLevel = ChargeLevel;
+    bool bWasAtMax = (PrevChargeLevel >= MaxChargeLevel - 0.01f);
+    bool bWasAtBase = (PrevChargeLevel <= 1.01f);
+
+    if (bIsKeyHeld)
+    {
+        ChargeTime += DeltaTime;
+        float Alpha = FMath::Clamp(ChargeTime / MaxChargeTime, 0.f, 1.f);
+        ChargeLevel = FMath::Lerp(1.0f, MaxChargeLevel, Alpha);
+
+        // Play charging sound if not at max
+        if (ChargingSound && !bWasAtMax && !bPlayedChargedSound)
+        {
+            UGameplayStatics::PlaySoundAtLocation(this, ChargingSound, GetActorLocation());
+        }
+
+        // Play charged sound when reaching max
+        if (ChargeLevel >= MaxChargeLevel - 0.01f && !bPlayedChargedSound)
+        {
+            if (ChargedSound)
+                UGameplayStatics::PlaySoundAtLocation(this, ChargedSound, GetActorLocation());
+            bPlayedChargedSound = true;
+        }
+    }
+    else
+    {
+        // Optionally, slowly recharge to 1.0 when not held (or keep at 1.0)
+        if (ChargeLevel < 1.0f)
+        {
+            ChargeLevel = FMath::FInterpTo(ChargeLevel, 1.0f, DeltaTime, 2.0f);
+            if (FMath::IsNearlyEqual(ChargeLevel, 1.0f, 0.01f))
+            {
+                ChargeLevel = 1.0f;
+                // Play refill sound when returning to baseline
+                if (RefillSound && !bPlayedRefillSound)
+                {
+                    UGameplayStatics::PlaySoundAtLocation(this, RefillSound, GetActorLocation());
+                    bPlayedRefillSound = true;
+                }
+            }
+        }
+        bPlayedChargedSound = false; // Reset for next charge
+    }
+
+    // Reset refill sound flag if not at baseline
+    if (ChargeLevel > 1.01f)
+        bPlayedRefillSound = false;
+
+    LastChargeLevel = ChargeLevel;
+}
+
+void AKeyballKey::ResetCharge()
+{
+    ChargeLevel = 0.0f;
+    ChargeTime = 0.0f;
 }
